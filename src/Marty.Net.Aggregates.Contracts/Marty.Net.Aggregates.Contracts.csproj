@@ -1,0 +1,74 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <!-- General -->
+        <Description>Contracts for Marty.Net.Aggregates - An application framework to start quickly with EventStore</Description>
+        <Copyright>Copyright 2024 Dario Griffo</Copyright>
+        <Authors>Dario Griffo</Authors>
+        <Company>https://github.com/dariogriffo</Company>
+        <NeutralLanguage>en-GB</NeutralLanguage>
+
+        <!-- Build settings -->
+        <TargetFramework>net8.0</TargetFramework>
+        <DebugType>portable</DebugType>
+        <OutputType>Library</OutputType>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <IncludeSymbols>true</IncludeSymbols>
+        <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
+
+        <!-- NuGet settings -->
+        <PackageId>Marty.Net.Aggregates.Contracts</PackageId>
+        <PackageTags>eventstore, publisher, consumer, pub/sub, event-sourcing, event-store</PackageTags>
+        <PackageReleaseNotes>https://github.com/dariogriffo/marty-net/blob/main/RELEASE_NOTES.md</PackageReleaseNotes>
+        <PackageProjectUrl>https://github.com/dariogriffo/marty-net</PackageProjectUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageIcon>images\icon.png</PackageIcon>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+        <RepositoryType>git</RepositoryType>
+        <RepositoryUrl>https://github.com/dariogriffo/marty-net</RepositoryUrl>
+        <Version>1.0.0</Version>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <!-- SourceLink settings -->
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
+
+        <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+        <NoWarn>FS2003;FS0044</NoWarn>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Marty.Net"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="ReflectionMagic" Version="[5.0.1,)"/>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="[8.0.0,)"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Marty.Net.Contracts\Marty.Net.Contracts.csproj"/>
+    </ItemGroup>
+
+
+    <ItemGroup>
+
+        <None Include="$(SolutionDir)LICENSE" Pack="true" PackagePath="license">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Include="$(SolutionDir)README.md" Pack="true" PackagePath="\">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Include="images\icon.png" Pack="true" PackagePath="images">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+
+    <ItemGroup>
+        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+            <_Parameter1>Marty.Net.Aggregates</_Parameter1>
+        </AssemblyAttribute>
+    </ItemGroup>
+
+</Project>

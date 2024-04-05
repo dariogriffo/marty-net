@@ -1,0 +1,20 @@
+version: '3.5'
+
+volumes:
+  marty-net-data:
+    name: marty-net-data
+    driver: local
+    
+services:
+  eventstore-db:
+    image: eventstore/eventstore:23.6.0-buster-slim
+    environment:
+      - EVENTSTORE_INSECURE=true
+      - EVENTSTORE_RUN_PROJECTIONS=All
+      - EVENTSTORE_START_STANDARD_PROJECTIONS=True
+      - EVENTSTORE_ENABLE_ATOM_PUB_OVER_HTTP=TRUE
+    ports:
+      - "1113:1113"
+      - "2113:2113"
+    volumes:
+      - marty-net-data:/var/lib/eventstore
