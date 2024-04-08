@@ -44,7 +44,7 @@ public class Payment : Aggregate
             CardNumber = command.CardNumber,
             Cvv = command.Cvv,
             Amount = command.Amount,
-            Timestamp = DateTime.UtcNow
+            Timestamp = DateTimeOffset.UtcNow
         };
         ApplyChange(@event);
     }
@@ -56,7 +56,7 @@ public class Payment : Aggregate
             {
                 RefundId = Guid.NewGuid().ToString(),
                 PaymentId = command.PaymentId,
-                Timestamp = DateTime.UtcNow,
+                Timestamp = DateTimeOffset.UtcNow,
                 Amount = command.Amount ?? IntentAmount
             };
 
@@ -69,7 +69,7 @@ public class Payment : Aggregate
                 {
                     RefundId = @event.RefundId,
                     PaymentId = command.PaymentId,
-                    Timestamp = DateTime.UtcNow,
+                    Timestamp = DateTimeOffset.UtcNow,
                     Reason = $"Cannot find payment with id {command.PaymentId}"
                 },
             PaymentStatus.RefundInitiated
@@ -77,7 +77,7 @@ public class Payment : Aggregate
                 {
                     RefundId = @event.RefundId,
                     PaymentId = command.PaymentId,
-                    Timestamp = DateTime.UtcNow,
+                    Timestamp = DateTimeOffset.UtcNow,
                     Amount = command.Amount ?? IntentAmount,
                     Message = command.Message
                 },
@@ -86,7 +86,7 @@ public class Payment : Aggregate
                 {
                     RefundId = @event.RefundId,
                     PaymentId = command.PaymentId,
-                    Timestamp = DateTime.UtcNow,
+                    Timestamp = DateTimeOffset.UtcNow,
                     Reason =
                         $"Cannot refund a higher amount {command.Amount} than the payment {IntentAmount}"
                 },
@@ -96,7 +96,7 @@ public class Payment : Aggregate
                 {
                     RefundId = @event.RefundId,
                     PaymentId = command.PaymentId,
-                    Timestamp = DateTime.UtcNow,
+                    Timestamp = DateTimeOffset.UtcNow,
                     Reason = $"Cannot refund a payment in Status {status}"
                 }
         };
@@ -110,7 +110,7 @@ public class Payment : Aggregate
     {
         IEvent @event = new PaymentCaptured
         {
-            Timestamp = DateTime.UtcNow,
+            Timestamp = DateTimeOffset.UtcNow,
             Amount = command.Amount ?? IntentAmount
         };
         ApplyChange(@event);
@@ -121,7 +121,7 @@ public class Payment : Aggregate
         IEvent @event = new PaymentDeclined
         {
             PaymentId = command.PaymentId,
-            Timestamp = DateTime.UtcNow,
+            Timestamp = DateTimeOffset.UtcNow,
             Reason = command.Reason
         };
         ApplyChange(@event);
@@ -135,7 +135,7 @@ public class Payment : Aggregate
             TransactionId = command.TransactionId,
             OriginalTransactionId = command.OriginalTransactionId,
             PaymentId = command.PaymentId,
-            Timestamp = DateTime.UtcNow,
+            Timestamp = DateTimeOffset.UtcNow,
             Reason = command.Reason
         };
         ApplyChange(@event);
@@ -146,7 +146,7 @@ public class Payment : Aggregate
         IEvent @event = new RefundActionAccepted
         {
             TransactionId = command.TransactionId,
-            Timestamp = DateTime.UtcNow
+            Timestamp = DateTimeOffset.UtcNow
         };
         ApplyChange(@event);
     }
@@ -157,7 +157,7 @@ public class Payment : Aggregate
         {
             OriginalTransactionId = command.OriginalTransactionId,
             TransactionId = command.TransactionId,
-            Timestamp = DateTime.UtcNow,
+            Timestamp = DateTimeOffset.UtcNow,
             Amount = command.Amount
         };
         ApplyChange(@event);

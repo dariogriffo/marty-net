@@ -14,7 +14,7 @@ public class OrderRefundRequested : IEvent
 
     public bool IsPartial { get; init; }
 
-    public DateTime Timestamp { get; init; } = DateTime.UtcNow;
+    public DateTimeOffset Timestamp { get; init; } = DateTimeOffset.UtcNow;
 
     public IReadOnlyDictionary<string, string>? Metadata { get; set; }
 }

@@ -14,7 +14,7 @@ public class RefundActionCompleted : IEvent
 
     public int Amount { get; set; }
 
-    public DateTime Timestamp { get; init; }
+    public DateTimeOffset Timestamp { get; init; }
 
     public IReadOnlyDictionary<string, string>? Metadata { get; set; }
 }

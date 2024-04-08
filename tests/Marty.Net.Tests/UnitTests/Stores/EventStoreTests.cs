@@ -203,7 +203,7 @@ public class EventStoreTests
         IPersistentSubscriber _1 = Mock.Of<IPersistentSubscriber>();
         IConnectionProvider _2 = Mock.Of<IConnectionProvider>();
         string streamName = Guid.NewGuid().ToString();
-        DateTime timestamp = DateTime.UtcNow;
+        DateTimeOffset timestamp = DateTimeOffset.UtcNow;
         IEventStore sut = new EventStore(_, read, _1, _2);
 
         await sut.ReadStreamUntilTimestamp(streamName, timestamp);
@@ -220,7 +220,7 @@ public class EventStoreTests
         IPersistentSubscriber _1 = Mock.Of<IPersistentSubscriber>();
         IConnectionProvider _2 = Mock.Of<IConnectionProvider>();
         string streamName = Guid.NewGuid().ToString();
-        DateTime timestamp = DateTime.UtcNow;
+        DateTimeOffset timestamp = DateTimeOffset.UtcNow;
         IEventStore sut = new EventStore(_, read, _1, _2);
 
         await sut.ReadStreamFromTimestamp(streamName, timestamp, default);

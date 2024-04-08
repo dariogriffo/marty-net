@@ -124,7 +124,7 @@ internal sealed class EventStore : IEventStore
 
     public Task<List<IEvent>> ReadStreamUntilTimestamp(
         string streamName,
-        DateTime timestamp,
+        DateTimeOffset timestamp,
         CancellationToken cancellationToken = default
     )
     {
@@ -133,7 +133,7 @@ internal sealed class EventStore : IEventStore
 
     public Task<List<IEvent>> ReadStreamFromTimestamp(
         string streamName,
-        DateTime timestamp,
+        DateTimeOffset timestamp,
         CancellationToken cancellationToken
     )
     {

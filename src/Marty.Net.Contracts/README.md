@@ -5,9 +5,9 @@
 An extremely opinionated framework to work with Greg Young's [EventStoreDb](https://eventstore.com/).
 
 [![NuGet Info](https://buildstats.info/nuget/Marty.Net?includePreReleases=true)](https://www.nuget.org/packages/Marty.Net/)
-[![GitHub license](https://img.shields.io/github/license/dariogriffo/marty-net.svg)](https://raw.githubusercontent.com/dariogriffo/marty-net/master/LICENSE)
+[![GitHub license](https://img.shields.io/github/license/dariogriffo/marty-net.svg)](https://raw.githubusercontent.com/dariogriffo/marty-net/main/LICENSE)
 ### Build Status
-![.Net8.0](https://github.com/dariogriffo/marty-net/workflows/.NET/badge.svg?branch=main)
+![CI](https://github.com/dariogriffo/marty-net/workflows/CI/badge.svg?branch=main)
 
 [![Build history](https://buildstats.info/github/chart/dariogriffo/marty-net?branch=main&includeBuildsFromPullRequest=false)](https://github.com/dariogriffo/marty-net/actions?query=branch%3Amain++)
 

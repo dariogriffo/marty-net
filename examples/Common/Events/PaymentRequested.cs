@@ -12,7 +12,7 @@ public class PaymentRequested : IEvent
 
     public string Id { get; init; } = null!;
 
-    public DateTime Timestamp { get; init; }
+    public DateTimeOffset Timestamp { get; init; }
 
     public IReadOnlyDictionary<string, string>? Metadata { get; set; }
 }

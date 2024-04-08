@@ -10,7 +10,7 @@ public class UserActivated : IEvent
 
     public string UserId { get; init; } = null!;
 
-    public DateTime Timestamp { get; init; } = DateTime.UtcNow;
+    public DateTimeOffset Timestamp { get; init; } = DateTimeOffset.UtcNow;
 
     public IReadOnlyDictionary<string, string>? Metadata { get; set; }
 }

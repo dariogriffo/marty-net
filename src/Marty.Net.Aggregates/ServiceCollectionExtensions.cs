@@ -45,7 +45,7 @@ public static class ServiceCollectionExtensions
                 )
         );
 
-        services.AddSingleton<IAggregateStore, AggregatesStore>();
+        services.AddScoped<IAggregateStore, AggregatesStore>();
 
         return services;
     }

@@ -43,7 +43,7 @@ public interface IReadEventStore
     /// <returns>A list of tuples containing the events with their associated (optional) metadata.</returns>
     Task<List<IEvent>> ReadStreamFromTimestamp(
         string streamName,
-        DateTime timestamp,
+        DateTimeOffset timestamp,
         CancellationToken cancellationToken = default
     );
 
@@ -70,7 +70,7 @@ public interface IReadEventStore
     /// <returns>A list of tuples containing the events with their associated (optional) metadata.</returns>
     Task<List<IEvent>> ReadStreamUntilTimestamp(
         string streamName,
-        DateTime timestamp,
+        DateTimeOffset timestamp,
         CancellationToken cancellationToken = default
     );
 }

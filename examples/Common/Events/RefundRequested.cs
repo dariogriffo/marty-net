@@ -13,7 +13,7 @@ public class RefundRequested : IEvent
 
     public string? Message { get; init; }
 
-    public DateTime Timestamp { get; init; }
+    public DateTimeOffset Timestamp { get; init; }
 
     public IReadOnlyDictionary<string, string>? Metadata { get; set; }
 }

@@ -11,7 +11,7 @@ public interface IEvent
     /// <summary>
     ///     When the event occurred
     /// </summary>
-    DateTime Timestamp { get; init; }
+    DateTimeOffset Timestamp { get; init; }
 
     /// <summary>
     ///     The metadata associated to the event
