@@ -30,10 +30,10 @@ public abstract class Aggregate
     public string Id { get; protected set; } = Guid.NewGuid().ToString();
 
     /// <summary>
-    ///     All the Common that haven't been stored
+    ///     All the events that haven't been saved to the store
     /// </summary>
     [JsonIgnore]
-    public IEvent[] UncommittedChanges => _events.ToArray();
+    protected internal IEvent[] UncommittedChanges => _events.ToArray();
 
     /// <summary>
     ///     The Version of the aggregate
