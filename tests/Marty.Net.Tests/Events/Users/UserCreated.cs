@@ -1,8 +1,8 @@
 ﻿namespace Marty.Net.Tests.Events.Users;
 
-using System;
-using System.Collections.Generic;
 using Contracts;
+using System;
+using System.Collections.Frozen;
 
 public class UserCreated : IEvent
 {
@@ -12,5 +12,5 @@ public class UserCreated : IEvent
 
     public DateTimeOffset Timestamp { get; init; } = DateTimeOffset.UtcNow;
 
-    public IReadOnlyDictionary<string, string>? Metadata { get; set; }
+    public FrozenDictionary<string, string>? Metadata { get; set; }
 }

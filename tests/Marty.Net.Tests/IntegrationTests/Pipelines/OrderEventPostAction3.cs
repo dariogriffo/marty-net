@@ -1,9 +1,9 @@
 namespace Marty.Net.Tests.IntegrationTests.Pipelines;
 
-using System.Threading;
-using System.Threading.Tasks;
 using Contracts;
 using Events.Orders;
+using System.Threading;
+using System.Threading.Tasks;
 
 public class OrderEventPostAction3(ICounter counter) : IPostProcessor<OrderDelivered>
 {

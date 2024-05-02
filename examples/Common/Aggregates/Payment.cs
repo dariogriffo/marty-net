@@ -1,13 +1,13 @@
 ﻿namespace Common.Aggregates;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Commands;
 using Entities;
 using Events;
 using Marty.Net.Aggregates.Contracts;
 using Marty.Net.Contracts;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 public class Payment : Aggregate
 {

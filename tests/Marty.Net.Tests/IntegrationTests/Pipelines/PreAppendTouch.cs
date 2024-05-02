@@ -1,12 +1,11 @@
 ﻿namespace Marty.Net.Tests.IntegrationTests.Pipelines;
 
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Contracts;
 using Events.Orders;
+using System.Collections.Frozen;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 public class PreAppendTouch : IPreAppendEventAction<OrderAbandoned>
 {
@@ -30,7 +29,7 @@ public class PreAppendTouch : IPreAppendEventAction<OrderAbandoned>
         }
 
         metadata.Add("test", "test");
-        @event.Metadata = new ReadOnlyDictionary<string, string>(metadata);
+        @event.Metadata = metadata.ToFrozenDictionary();
 
         return Task.CompletedTask;
     }

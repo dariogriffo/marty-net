@@ -1,8 +1,8 @@
 namespace Marty.Net.Contracts;
 
+using Exceptions;
 using System.Threading;
 using System.Threading.Tasks;
-using Exceptions;
 
 /// <summary>
 ///     The interface to have access to Persistent Subscriptions

@@ -1,15 +1,14 @@
 ﻿namespace Marty.Net.Tests.IntegrationTests;
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Contracts;
 using Events.Orders;
 using Handlers;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Pipelines;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 public class SubscribeTests

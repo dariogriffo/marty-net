@@ -1,16 +1,13 @@
 namespace Marty.Net.Internal;
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Contracts;
 using Contracts.Exceptions;
 using global::EventStore.Client;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Wrappers;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 internal class PersistentSubscriber : IPersistentSubscriber
 {
@@ -82,7 +79,7 @@ internal class PersistentSubscriber : IPersistentSubscriber
             await subscription.Ack(resolvedEvent);
         }
 
-        IServiceScope? scope = default;
+        ExecutionPlan? plan;
         try
         {
             IEvent? deserialize = _serializer.Deserialize(resolvedEvent.Event);
@@ -103,7 +100,8 @@ internal class PersistentSubscriber : IPersistentSubscriber
             IEvent @event = deserialize!;
             _logger.LogTrace("Event {Event} arrived", @event);
 
-            if (!_handlesFactory.TryGetScopeFor(@event, out scope))
+            plan = _handlesFactory.TryGetExecutionPlanFor(@event);
+            if (plan is null)
             {
                 if (_configuration.Value.TreatMissingHandlersAsErrors)
                 {
@@ -120,73 +118,18 @@ internal class PersistentSubscriber : IPersistentSubscriber
 
             ConsumerContext context = new(resolvedEvent.Event.EventStreamId, retryCount);
 
-            async Task<OperationResult> ExecuteActionsAndHandler()
+            plan.Behaviors[^1].Next = async () =>
+                await plan.Handler.Handle(@event, context, cancellationToken);
+
+            for (int i = plan.Behaviors.Length - 2; i >= 0; i--)
             {
-                PreProcessorWrapper[] preProcessors = _handlesFactory.GetPreProcessorsFor(
-                    @event,
-                    scope!
-                );
-                {
-                    foreach (PreProcessorWrapper actionInfo in preProcessors)
-                    {
-                        await actionInfo.Execute(@event, context, cancellationToken);
-                    }
-                }
-
-                EventHandlerWrapper handler = _handlesFactory.GetHandlerFor(@event, scope!);
-                Task<OperationResult> task = handler.Handle(@event, context, cancellationToken);
-                OperationResult operationResult = await task;
-
-                PostProcessorWrapper[] processors = _handlesFactory.GetPostProcessorsFor(
-                    @event,
-                    scope!
-                );
-                foreach (PostProcessorWrapper processor in processors)
-                {
-                    operationResult = await processor.Execute(
-                        @event,
-                        context,
-                        operationResult,
-                        cancellationToken
-                    );
-                }
-
-                return operationResult;
+                var index = i;
+                plan.Behaviors[i].Next = async () =>
+                    await plan.Behaviors[index + 1].Execute(@event, context, cancellationToken);
             }
 
-            OperationResult result;
-            if (
-                _handlesFactory.TryGetPipelinesFor(
-                    @event,
-                    scope!,
-                    out List<PipelineBehaviorWrapper>? behaviors
-                )
-            )
-            {
-                int length = behaviors!.Count;
-                Func<Task<OperationResult>>[] reversed = new Func<Task<OperationResult>>[
-                    length + 1
-                ];
-                behaviors.Reverse();
-
-                reversed[length] = ExecuteActionsAndHandler;
-
-                //Let's build the execution tree
-                for (int i = 0; i < length; ++i)
-                {
-                    PipelineBehaviorWrapper behavior = behaviors[i];
-                    Func<Task<OperationResult>> next = reversed[length - i];
-                    reversed[length - i - 1] = () =>
-                        behavior.Execute(@event, context, next, cancellationToken);
-                }
-
-                Func<Task<OperationResult>> func = reversed[0];
-                result = await func();
-            }
-            else
-            {
-                result = await ExecuteActionsAndHandler();
-            }
+            OperationResult result = await plan.Behaviors[0]
+                .Execute(@event, context, cancellationToken);
 
             _logger.LogTrace("Event {Event} handled with result {Result:G}", @event, result);
             await (
@@ -223,10 +166,6 @@ internal class PersistentSubscriber : IPersistentSubscriber
         catch (Exception ex)
         {
             await ParkEventAndLogError(subscription, ex, resolvedEvent, retryCount);
-        }
-        finally
-        {
-            scope?.Dispose();
         }
     }
 

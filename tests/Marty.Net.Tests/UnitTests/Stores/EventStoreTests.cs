@@ -1,11 +1,11 @@
 ﻿namespace Marty.Net.Tests.UnitTests.Stores;
 
-using System;
-using System.Threading.Tasks;
 using Contracts;
 using Events.Orders;
 using Internal;
 using Moq;
+using System;
+using System.Threading.Tasks;
 using Xunit;
 
 public class EventStoreTests

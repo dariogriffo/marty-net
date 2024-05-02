@@ -1,12 +1,12 @@
 namespace Marty.Net.Aggregates.Contracts;
 
+using Net.Contracts;
+using ReflectionMagic;
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Net.Contracts;
-using ReflectionMagic;
 
 /// <summary>
 ///     A base Aggregate NOT thread safe

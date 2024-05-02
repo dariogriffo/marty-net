@@ -20,16 +20,16 @@
         <!-- NuGet settings -->
         <PackageId>Marty.Net</PackageId>
         <PackageTags>eventstore, publisher, consumer, pub/sub, event-sourcing, event-store</PackageTags>
-        <PackageReleaseNotes>https://github.com/dariogriffo/marty-net/releases/tag/1.0.2</PackageReleaseNotes>
+        <PackageReleaseNotes>https://github.com/dariogriffo/marty-net/blob/main/CHANGELOG.md</PackageReleaseNotes>
         <PackageProjectUrl>https://github.com/dariogriffo/marty-net</PackageProjectUrl>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageIcon>images\icon.png</PackageIcon>
         <PackageReadmeFile>README.md</PackageReadmeFile>
-        <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+        <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
         <RepositoryType>git</RepositoryType>
         <RepositoryUrl>https://github.com/dariogriffo/marty-net</RepositoryUrl>
-        <Version>1.0.2</Version>
-        <AssemblyVersion>1.0.2</AssemblyVersion>
+        <Version>1.0.3</Version>
+        <AssemblyVersion>1.0.3</AssemblyVersion>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
         <!-- SourceLink settings -->
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -42,14 +42,13 @@
 
 
     <ItemGroup>
-
-        <None Include="$(SolutionDir)LICENSE" Pack="true" PackagePath="license">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
         <None Include="$(SolutionDir)README.md" Pack="true" PackagePath="\">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
         <None Include="images\icon.png" Pack="true" PackagePath="images">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Include="$(SolutionDir)MediatR_LICENSE" Pack="true" PackagePath="licenses\">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
     </ItemGroup>
@@ -58,6 +57,7 @@
         <PackageReference Include="EventStore.Client.Grpc.PersistentSubscriptions" Version="[23.1.0,)"/>
         <PackageReference Include="EventStore.Client.Grpc.Streams" Version="[23.1.0,)"/>
         <PackageReference Include="Microsoft.Extensions.Options" Version="[8.0.0,)"/>
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="[8.0.0,)"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -71,10 +71,6 @@
         <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
             <_Parameter1>DynamicProxyGenAssembly2</_Parameter1>
         </AssemblyAttribute>
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="license\" />
     </ItemGroup>
 
 </Project>

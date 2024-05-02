@@ -1,8 +1,8 @@
 ﻿namespace Common.Events;
 
-using System;
-using System.Collections.Generic;
 using Marty.Net.Contracts;
+using System;
+using System.Collections.Frozen;
 
 public class RefundDeclined : IEvent
 {
@@ -18,5 +18,5 @@ public class RefundDeclined : IEvent
 
     public DateTimeOffset Timestamp { get; init; }
 
-    public IReadOnlyDictionary<string, string>? Metadata { get; set; }
+    public FrozenDictionary<string, string>? Metadata { get; set; }
 }

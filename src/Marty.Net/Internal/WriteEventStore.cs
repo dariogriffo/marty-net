@@ -1,16 +1,15 @@
 namespace Marty.Net.Internal;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 using Contracts;
 using Contracts.Exceptions;
 using global::EventStore.Client;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Wrappers;
 
 internal sealed class WriteEventStore : IWriteEventStore

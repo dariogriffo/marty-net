@@ -1,7 +1,7 @@
 namespace Marty.Net.Internal;
 
-using System.Threading.Tasks;
 using global::EventStore.Client;
+using System.Threading.Tasks;
 
 internal interface IConnectionProvider
 {

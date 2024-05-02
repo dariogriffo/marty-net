@@ -1,16 +1,17 @@
 namespace Marty.Net.Internal.Wrappers;
 
+using Contracts;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Contracts;
 
 internal abstract class PipelineBehaviorWrapper
 {
+    protected internal Func<Task<OperationResult>> Next { get; set; } = null!;
+
     internal abstract Task<OperationResult> Execute(
         object @event,
         IConsumerContext context,
-        Func<Task<OperationResult>> next,
         CancellationToken cancellationToken = default
     );
 }
@@ -21,7 +22,6 @@ internal class PipelineBehaviorWrapper<T>(IPipelineBehavior<T> behavior) : Pipel
     internal override Task<OperationResult> Execute(
         object @event,
         IConsumerContext context,
-        Func<Task<OperationResult>> next,
         CancellationToken cancellationToken = default
-    ) => behavior.Execute((T)@event, context, next, cancellationToken);
+    ) => behavior.Execute((T)@event, context, Next, cancellationToken);
 }

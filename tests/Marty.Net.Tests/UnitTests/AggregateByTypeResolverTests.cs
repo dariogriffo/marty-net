@@ -1,9 +1,9 @@
 namespace Marty.Net.Tests.UnitTests;
 
-using System;
 using Aggregates;
 using Contracts.Internal;
 using FluentAssertions;
+using System;
 using Xunit;
 
 public class AggregateByTypeResolverTests

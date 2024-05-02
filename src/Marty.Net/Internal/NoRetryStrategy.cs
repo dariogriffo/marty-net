@@ -1,10 +1,10 @@
 namespace Marty.Net.Internal;
 
+using Contracts;
+using Contracts.Exceptions;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Contracts;
-using Contracts.Exceptions;
 
 internal sealed class NoReconnectionStrategy : IConnectionStrategy
 {

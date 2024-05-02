@@ -1,8 +1,8 @@
 namespace Marty.Net.Contracts.Internal;
 
+using Aggregates.Contracts;
 using System;
 using System.Collections.Concurrent;
-using Aggregates.Contracts;
 
 internal sealed class AggregateByTypeResolver : IAggregateStreamResolver
 {

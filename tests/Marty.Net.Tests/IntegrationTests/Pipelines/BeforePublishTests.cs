@@ -1,12 +1,11 @@
 ﻿namespace Marty.Net.Tests.IntegrationTests.Pipelines;
 
-using System;
-using System.Threading.Tasks;
 using Contracts;
 using Events.Orders;
-using Handlers;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using System;
+using System.Threading.Tasks;
 using Xunit;
 
 public class BeforePublishTests

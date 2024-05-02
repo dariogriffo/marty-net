@@ -1,8 +1,8 @@
 ﻿namespace Marty.Net.Contracts;
 
+using Internal;
 using System.Threading;
 using System.Threading.Tasks;
-using Internal;
 
 /// <summary>
 ///     Action to be executed before publishing an <see cref="IEvent"/>

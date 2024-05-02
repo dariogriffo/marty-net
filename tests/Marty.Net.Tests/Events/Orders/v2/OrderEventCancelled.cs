@@ -1,8 +1,8 @@
 ﻿namespace Marty.Net.Tests.Events.Orders.v2;
 
-using System;
-using System.Collections.Generic;
 using Contracts;
+using System;
+using System.Collections.Frozen;
 
 public class OrderEventCancelled : IEvent
 {
@@ -14,5 +14,5 @@ public class OrderEventCancelled : IEvent
 
     public DateTimeOffset Timestamp { get; init; } = DateTimeOffset.UtcNow;
 
-    public IReadOnlyDictionary<string, string>? Metadata { get; set; }
+    public FrozenDictionary<string, string>? Metadata { get; set; }
 }

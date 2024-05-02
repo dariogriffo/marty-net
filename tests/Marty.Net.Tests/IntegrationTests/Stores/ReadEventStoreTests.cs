@@ -1,15 +1,15 @@
 ﻿namespace Marty.Net.Tests.IntegrationTests.Stores;
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Contracts;
 using Contracts.Exceptions;
 using Events.Orders;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 public class ReadEventStoreTests

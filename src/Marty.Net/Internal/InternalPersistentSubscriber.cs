@@ -1,14 +1,14 @@
 namespace Marty.Net.Internal;
 
-using System;
-using System.Collections.Concurrent;
-using System.Threading;
-using System.Threading.Tasks;
 using Contracts;
 using Contracts.Exceptions;
 using global::EventStore.Client;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Concurrent;
+using System.Threading;
+using System.Threading.Tasks;
 
 internal sealed class InternalPersistentSubscriber : IInternalPersistentSubscriber
 {

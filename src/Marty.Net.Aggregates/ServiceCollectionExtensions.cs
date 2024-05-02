@@ -1,10 +1,10 @@
 namespace Marty.Net.Contracts;
 
-using System;
 using Aggregates.Contracts;
 using Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using System;
 
 /// <summary>
 ///     The integration point with Marty.Net Aggregates with the <see cref="Microsoft.Extensions.DependencyInjection" />

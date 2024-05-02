@@ -1,10 +1,10 @@
 namespace Marty.Net.Internal;
 
+using Contracts;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Contracts;
 
 internal sealed class EventStore : IEventStore
 {

@@ -1,15 +1,15 @@
 namespace Marty.Net.Tests.IntegrationTests;
 
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Contracts;
 using Events.Orders;
 using FluentAssertions;
 using Handlers;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 public class ConsumerContextTests

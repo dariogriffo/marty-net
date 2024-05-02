@@ -1,9 +1,9 @@
 namespace Marty.Net.Contracts;
 
+using Internal;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Internal;
 
 /// <summary>
 ///     A Pipeline is to be executed before and after <see cref="IEventHandler{T}" />

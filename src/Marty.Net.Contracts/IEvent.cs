@@ -1,7 +1,7 @@
 namespace Marty.Net.Contracts;
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Frozen;
 
 /// <summary>
 ///     An interface that represents an Event.
@@ -16,5 +16,5 @@ public interface IEvent
     /// <summary>
     ///     The metadata associated to the event
     /// </summary>
-    IReadOnlyDictionary<string, string>? Metadata { get; set; }
+    FrozenDictionary<string, string>? Metadata { get; set; }
 }

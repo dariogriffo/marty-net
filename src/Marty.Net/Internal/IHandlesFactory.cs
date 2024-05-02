@@ -1,26 +1,25 @@
 namespace Marty.Net.Internal;
 
+using Contracts;
 using System;
 using System.Collections.Generic;
-using Contracts;
-using Microsoft.Extensions.DependencyInjection;
 using Wrappers;
+
+internal record ExecutionPlan
+{
+    public ExecutionPlan(EventHandlerWrapper handler, PipelineBehaviorWrapper[] behaviors)
+    {
+        Handler = handler;
+        Behaviors = behaviors;
+    }
+
+    internal EventHandlerWrapper Handler { get; init; } = null!;
+    internal PipelineBehaviorWrapper[] Behaviors { get; init; } = null!;
+}
 
 internal interface IHandlesFactory
 {
-    bool TryGetScopeFor(IEvent @event, out IServiceScope? scope);
-
-    EventHandlerWrapper GetHandlerFor(IEvent @event, IServiceScope scope);
-
-    bool TryGetPipelinesFor(
-        IEvent @event,
-        IServiceScope scope,
-        out List<PipelineBehaviorWrapper>? behaviors
-    );
-
-    PreProcessorWrapper[] GetPreProcessorsFor(IEvent @event, IServiceScope scope);
-
-    PostProcessorWrapper[] GetPostProcessorsFor(IEvent @event, IServiceScope scope);
+    ExecutionPlan? TryGetExecutionPlanFor(IEvent @event);
 
     bool TryGetPostAppendEventActionsFor(
         IEvent @event,

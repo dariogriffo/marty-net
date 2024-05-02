@@ -1,10 +1,10 @@
 namespace Marty.Net.Internal;
 
+using Contracts;
+using global::EventStore.Client;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Contracts;
-using global::EventStore.Client;
 
 internal interface IInternalPersistentSubscriber
 {

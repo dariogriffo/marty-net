@@ -1,10 +1,10 @@
 ﻿namespace Marty.Net.Tests.IntegrationTests.Pipelines;
 
+using Contracts;
+using Events.Orders.v2;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Contracts;
-using Events.Orders.v2;
 
 public class OrderPipelineBehaviorPipelineBehaviorAction2(ICounter counter)
     : IPipelineBehavior<OrderEventCancelled>

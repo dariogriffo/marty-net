@@ -1,16 +1,16 @@
 namespace Marty.Net.Internal;
 
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Reflection;
-using System.Text.Json;
 using Contracts;
 using Contracts.Exceptions;
 using global::EventStore.Client;
 using Microsoft.Extensions.Options;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Frozen;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text.Json;
 
 internal sealed class Serializer : ISerializer
 {
@@ -89,17 +89,17 @@ internal sealed class Serializer : ISerializer
         {
             if (metadata.ContainsKey(MetadataHeaders.EmptyMetadata))
             {
-                @event!.Metadata = new Dictionary<string, string>();
+                @event!.Metadata = new Dictionary<string, string>().ToFrozenDictionary();
             }
 
             return @event!;
         }
 
         {
-            Dictionary<string, string> dictionary = metadata
+            FrozenDictionary<string, string> dictionary = metadata
                 .Where(x => !x.Key.StartsWith(MetadataHeaders.MartyPrefix))
-                .ToDictionary(x => x.Key, x => x.Value);
-            @event!.Metadata = new ReadOnlyDictionary<string, string>(dictionary);
+                .ToFrozenDictionary(x => x.Key, x => x.Value);
+            @event!.Metadata = new Dictionary<string, string>(dictionary).ToFrozenDictionary();
         }
 
         return @event;

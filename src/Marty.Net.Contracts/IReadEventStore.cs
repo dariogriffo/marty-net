@@ -1,10 +1,10 @@
 namespace Marty.Net.Contracts;
 
+using Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Exceptions;
 
 /// <summary>
 ///     The interface that gives read access to https://github.com/EventStore/EventStore

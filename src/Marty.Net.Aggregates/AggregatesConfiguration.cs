@@ -1,7 +1,7 @@
 namespace Marty.Net.Contracts;
 
-using System;
 using Aggregates.Contracts;
+using System;
 
 /// <summary>
 ///     Configuration for the <see cref="ServiceCollectionExtensions.AddMartyAggregates" />

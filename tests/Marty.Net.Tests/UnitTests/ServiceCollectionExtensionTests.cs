@@ -1,14 +1,14 @@
 ﻿namespace Marty.Net.Tests.UnitTests;
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Contracts;
 using Events.Orders;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 public class ServiceCollectionExtensionTests

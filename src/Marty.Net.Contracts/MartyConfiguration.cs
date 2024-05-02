@@ -1,13 +1,13 @@
 namespace Marty.Net.Contracts;
 
+using Internal;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Internal;
-using Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
 ///     Configuration for Marty.Net
@@ -311,11 +311,12 @@ public class MartyConfiguration
             Type service =
                 isGenericTypeDefinition
                 && serviceType
-                    is {
-                        IsGenericType: true,
-                        IsGenericTypeDefinition: false,
-                        ContainsGenericParameters: true
-                    }
+                    is
+                {
+                    IsGenericType: true,
+                    IsGenericTypeDefinition: false,
+                    ContainsGenericParameters: true
+                }
                     ? serviceType.GetGenericTypeDefinition()
                     : serviceType;
             descriptors.Add(new ServiceDescriptor(service, implementationType, serviceLifetime));

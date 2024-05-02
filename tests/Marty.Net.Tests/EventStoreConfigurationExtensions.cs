@@ -1,11 +1,11 @@
 namespace Marty.Net.Tests;
 
-using System;
-using System.Collections.Generic;
 using Contracts;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
 
 internal static class EventStoreConfigurationExtensions
 {
@@ -17,7 +17,7 @@ internal static class EventStoreConfigurationExtensions
             new()
             {
                 { "Marty.Net:ConnectionString", "esdb://localhost:2113?tls=false" },
-                { "Marty.Net:SubscriptionSettings:SubscriptionGroup", "easy-evs-tests" }
+                { "Marty.Net:SubscriptionSettings:SubscriptionGroup", "marty-net-tests" }
             };
 
         IConfiguration conf = new ConfigurationBuilder().AddInMemoryCollection(dict!).Build();
