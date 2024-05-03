@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using OrderRefundRequested = Events.Orders.v2.OrderRefundRequested;
 
-public class OrderEventHandlerHandler(ICounter counter, IStreamNames streamNames)
+public class OrderEventHandlerHandler
     : IEventHandler<OrderCreated>,
         IEventHandler<OrderCancelled>,
         IEventHandler<Events.Orders.OrderRefundRequested>,
@@ -16,14 +16,23 @@ public class OrderEventHandlerHandler(ICounter counter, IStreamNames streamNames
         IEventHandler<OrderDelivered>,
         IEventHandler<OrderAbandoned>
 {
+    private readonly ICounter _counter;
+    private readonly IStreamNames _streamNames;
+
+    public OrderEventHandlerHandler(ICounter counter, IStreamNames streamNames)
+    {
+        _counter = counter;
+        _streamNames = streamNames;
+    }
+
     public Task<OperationResult> Handle(
         OrderAbandoned @event,
         IConsumerContext context,
         CancellationToken cancellationToken
     )
     {
-        streamNames.Add(context.StreamName);
-        counter.Touch();
+        _streamNames.Add(context.StreamName);
+        _counter.Touch();
         return Task.FromResult(OperationResult.Ok);
     }
 
@@ -33,8 +42,8 @@ public class OrderEventHandlerHandler(ICounter counter, IStreamNames streamNames
         CancellationToken cancellationToken
     )
     {
-        streamNames.Add(context.StreamName);
-        counter.Touch();
+        _streamNames.Add(context.StreamName);
+        _counter.Touch();
         return Task.FromResult(OperationResult.Ok);
     }
 
@@ -44,8 +53,8 @@ public class OrderEventHandlerHandler(ICounter counter, IStreamNames streamNames
         CancellationToken cancellationToken
     )
     {
-        streamNames.Add(context.StreamName);
-        counter.Touch();
+        _streamNames.Add(context.StreamName);
+        _counter.Touch();
         return Task.FromResult(OperationResult.Ok);
     }
 
@@ -55,8 +64,8 @@ public class OrderEventHandlerHandler(ICounter counter, IStreamNames streamNames
         CancellationToken cancellationToken
     )
     {
-        streamNames.Add(context.StreamName);
-        counter.Touch();
+        _streamNames.Add(context.StreamName);
+        _counter.Touch();
         return Task.FromResult(OperationResult.Ok);
     }
 
@@ -66,8 +75,8 @@ public class OrderEventHandlerHandler(ICounter counter, IStreamNames streamNames
         CancellationToken cancellationToken
     )
     {
-        streamNames.Add(context.StreamName);
-        counter.Touch();
+        _streamNames.Add(context.StreamName);
+        _counter.Touch();
         return Task.FromResult(OperationResult.Ok);
     }
 
@@ -77,8 +86,8 @@ public class OrderEventHandlerHandler(ICounter counter, IStreamNames streamNames
         CancellationToken cancellationToken
     )
     {
-        streamNames.Add(context.StreamName);
-        counter.Touch();
+        _streamNames.Add(context.StreamName);
+        _counter.Touch();
         return Task.FromResult(OperationResult.Ok);
     }
 
@@ -88,8 +97,8 @@ public class OrderEventHandlerHandler(ICounter counter, IStreamNames streamNames
         CancellationToken cancellationToken
     )
     {
-        streamNames.Add(context.StreamName);
-        counter.Touch();
+        _streamNames.Add(context.StreamName);
+        _counter.Touch();
         return Task.FromResult(OperationResult.Ok);
     }
 }

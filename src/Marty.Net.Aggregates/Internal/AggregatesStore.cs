@@ -17,12 +17,12 @@ internal sealed class AggregatesStore : IAggregateStore
     public AggregatesStore(
         IEventStore eventStore,
         IAggregateStreamResolver streamNameResolver,
-        ILogger<AggregatesStore> logger
+        ILoggerFactory? loggerFactory
     )
     {
         _eventStore = eventStore;
         _streamNameResolver = streamNameResolver;
-        _logger = logger;
+        _logger = loggerFactory.CreateLoggerFor<AggregatesStore>();
     }
 
     public async Task Create<T>(T aggregate, CancellationToken cancellationToken = default)
@@ -58,12 +58,15 @@ internal sealed class AggregatesStore : IAggregateStore
             );
         }
 
-        string id = aggregate.Id;
         string streamName = _streamNameResolver.StreamForAggregate(aggregate);
-        _logger.LogTrace("Loading aggregate with id {Id} from stream {StreamName}", id, streamName);
+
+        _logger.LogLoadingAggregate(streamName);
+
         List<IEvent> data = await _eventStore.ReadStream(streamName, cancellationToken);
         aggregate.LoadFromHistory(data);
-        _logger.LogTrace("Aggregate with id {Id} loaded", id);
+
+        _logger.LogAggregateLoaded(streamName);
+
         return aggregate;
     }
 
@@ -76,24 +79,14 @@ internal sealed class AggregatesStore : IAggregateStore
     {
         string id = aggregate.Id;
         string streamName = _streamNameResolver.StreamForAggregate(aggregate);
-        _logger.LogTrace(
-            "Loading aggregate with id {Id} from stream {StreamName} until position {StreamPosition}",
-            id,
-            streamName,
-            position
-        );
+        _logger.LogLoadingAggregateUntilPosition(streamName, position);
         List<IEvent> data = await _eventStore.ReadStreamUntilPosition(
             streamName,
             position,
             cancellationToken
         );
         aggregate.LoadFromHistory(data);
-        _logger.LogTrace(
-            "Aggregate with id {Id} loaded from stream {StreamName} until position {StreamPosition}",
-            id,
-            streamName,
-            position
-        );
+        _logger.LogAggregateLoadedUntilPosition(id, streamName, position);
         return aggregate;
     }
 
@@ -104,14 +97,8 @@ internal sealed class AggregatesStore : IAggregateStore
     )
         where T : Aggregate
     {
-        string id = aggregate.Id;
         string streamName = _streamNameResolver.StreamForAggregate(aggregate);
-        _logger.LogTrace(
-            "Loading aggregate with id {Id} from stream {StreamName} from position {StreamPosition}",
-            id,
-            streamName,
-            position
-        );
+        _logger.LogLoadingAggregateFromPosition(streamName, position);
         List<IEvent> data = await _eventStore.ReadStreamFromPosition(
             streamName,
             position,
@@ -119,12 +106,7 @@ internal sealed class AggregatesStore : IAggregateStore
         );
         aggregate.Version = position - 1;
         aggregate.LoadFromHistory(data);
-        _logger.LogTrace(
-            "Aggregate with id {Id} loaded from stream {StreamName} from position {StreamPosition}",
-            id,
-            streamName,
-            position
-        );
+        _logger.LogAggregateLoadedFromPosition(streamName, position);
         return aggregate;
     }
 
@@ -135,26 +117,19 @@ internal sealed class AggregatesStore : IAggregateStore
     )
         where T : Aggregate
     {
-        string id = aggregate.Id;
         string streamName = _streamNameResolver.StreamForAggregate(aggregate);
-        _logger.LogTrace(
-            "Loading aggregate with id {Id} from stream {StreamName} from timestamp {Timestamp}",
-            id,
-            streamName,
-            timestamp
-        );
+
+        _logger.LogLoadingAggregateFromTimestamp(streamName, timestamp);
+
         List<IEvent> data = await _eventStore.ReadStreamFromTimestamp(
             streamName,
             timestamp,
             cancellationToken
         );
         aggregate.LoadFromHistory(data);
-        _logger.LogTrace(
-            "Aggregate with id {Id} loaded from stream {StreamName} from timestamp {Timestamp}",
-            id,
-            streamName,
-            timestamp
-        );
+
+        _logger.LogAggregateLoadedFromTimestamp(streamName, timestamp);
+
         return aggregate;
     }
 
@@ -165,26 +140,18 @@ internal sealed class AggregatesStore : IAggregateStore
     )
         where T : Aggregate
     {
-        string id = aggregate.Id;
         string streamName = _streamNameResolver.StreamForAggregate(aggregate);
-        _logger.LogTrace(
-            "Loading aggregate with id {Id} from stream {StreamName} from timestamp {Timestamp}",
-            id,
-            streamName,
-            timestamp
-        );
+
+        _logger.LogLoadingAggregateUntilTimestamp(streamName, timestamp);
+
         List<IEvent> data = await _eventStore.ReadStreamUntilTimestamp(
             streamName,
             timestamp,
             cancellationToken
         );
         aggregate.LoadFromHistory(data);
-        _logger.LogTrace(
-            "Aggregate with id {Id} loaded from stream {StreamName} from timestamp {Timestamp}",
-            id,
-            streamName,
-            timestamp
-        );
+
+        _logger.LogAggregateLoadedUntilTimestamp(streamName, timestamp);
         return aggregate;
     }
 
@@ -204,11 +171,11 @@ internal sealed class AggregatesStore : IAggregateStore
         where T : Aggregate, new()
     {
         string streamName = _streamNameResolver.StreamForAggregate<T>(id);
-        _logger.LogTrace("Loading aggregate with id {Id} from stream {StreamName}", id, streamName);
+        _logger.LogLoadingAggregate(streamName);
         List<IEvent> data = await _eventStore.ReadStream(streamName, cancellationToken);
         T aggregate = new();
         aggregate.LoadFromHistory(data);
-        _logger.LogTrace("Aggregate with id {Id} loaded", id);
+        _logger.LogAggregateLoaded(id);
         return aggregate;
     }
 
@@ -219,12 +186,13 @@ internal sealed class AggregatesStore : IAggregateStore
         where T : Aggregate, new()
     {
         string id = _streamNameResolver.AggregateIdForStream(streamName);
-        _logger.LogTrace("Loading aggregate with id {Id} from stream {StreamName}", id, streamName);
+        _logger.LogLoadingAggregate(streamName);
         List<IEvent> data = await _eventStore.ReadStream(streamName, cancellationToken);
         T aggregate = new();
 
         aggregate.LoadFromHistory(data);
-        _logger.LogTrace("Aggregate with id {Id} loaded", streamName);
+        _logger.LogAggregateLoaded(id);
+
         return aggregate;
     }
 
@@ -235,7 +203,7 @@ internal sealed class AggregatesStore : IAggregateStore
     )
         where T : Aggregate, new()
     {
-        _logger.LogTrace("Loading aggregate from stream {StreamName}", streamName);
+        _logger.LogLoadingAggregate(streamName);
         List<IEvent> history = await _eventStore.ReadStreamUntilPosition(
             streamName,
             position,
@@ -243,11 +211,9 @@ internal sealed class AggregatesStore : IAggregateStore
         );
         T aggregate = new();
         aggregate.LoadFromHistory(history);
-        _logger.LogTrace(
-            "Aggregate with id {Id} loaded from stream {StreamName}",
-            aggregate.Id,
-            streamName
-        );
+
+        _logger.LogAggregateLoaded(aggregate.Id);
+
         return aggregate;
     }
 
@@ -258,11 +224,8 @@ internal sealed class AggregatesStore : IAggregateStore
     )
         where T : Aggregate, new()
     {
-        _logger.LogTrace(
-            "Loading aggregate from stream {StreamName} from position {StreamPosition}",
-            streamName,
-            position
-        );
+        _logger.LogLoadingAggregateFromPosition(streamName, position);
+
         List<IEvent> data = await _eventStore.ReadStreamFromPosition(
             streamName,
             position,
@@ -270,12 +233,7 @@ internal sealed class AggregatesStore : IAggregateStore
         );
         T aggregate = new();
         aggregate.LoadFromHistory(data);
-        _logger.LogTrace(
-            "Aggregate with id {Id} loaded from stream {StreamName} from position {StreamPosition}",
-            aggregate.Id,
-            streamName,
-            position
-        );
+        _logger.LogAggregateLoadedFromPosition(streamName, position);
         return aggregate;
     }
 
@@ -286,14 +244,13 @@ internal sealed class AggregatesStore : IAggregateStore
     )
         where T : Aggregate, new()
     {
-        string id = _streamNameResolver.AggregateIdForStream(streamName);
-        _logger.LogTrace("Loading aggregate with id {Id} from stream {StreamName}", id, streamName);
+        _logger.LogLoadingAggregate(streamName);
         List<IEvent> data = await _eventStore.ReadStream(streamName, cancellationToken);
         T aggregate = new();
         IEnumerable<IEvent> history = data.TakeWhile(x => x.Timestamp < lastEventToLoad.Timestamp);
 
         aggregate.LoadFromHistory(history);
-        _logger.LogTrace("Aggregate with id {Id} loaded", streamName);
+        _logger.LogAggregateLoaded(streamName);
         return aggregate;
     }
 }

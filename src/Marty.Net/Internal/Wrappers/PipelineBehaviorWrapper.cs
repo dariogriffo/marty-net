@@ -16,12 +16,19 @@ internal abstract class PipelineBehaviorWrapper
     );
 }
 
-internal class PipelineBehaviorWrapper<T>(IPipelineBehavior<T> behavior) : PipelineBehaviorWrapper
+internal class PipelineBehaviorWrapper<T> : PipelineBehaviorWrapper
     where T : IEvent
 {
+    private readonly IPipelineBehavior<T> _behavior;
+
+    public PipelineBehaviorWrapper(IPipelineBehavior<T> behavior)
+    {
+        _behavior = behavior;
+    }
+
     internal override Task<OperationResult> Execute(
         object @event,
         IConsumerContext context,
         CancellationToken cancellationToken = default
-    ) => behavior.Execute((T)@event, context, Next, cancellationToken);
+    ) => _behavior.Execute((T)@event, context, Next, cancellationToken);
 }

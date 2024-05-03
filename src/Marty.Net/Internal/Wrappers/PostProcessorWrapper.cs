@@ -14,13 +14,20 @@ internal abstract class PostProcessorWrapper
     );
 }
 
-internal class PostProcessorWrapper<T>(IPostProcessor<T> processor) : PostProcessorWrapper
+internal class PostProcessorWrapper<T> : PostProcessorWrapper
     where T : IEvent
 {
+    private readonly IPostProcessor<T> _processor;
+
+    public PostProcessorWrapper(IPostProcessor<T> processor)
+    {
+        _processor = processor;
+    }
+
     internal override Task<OperationResult> Execute(
         object @event,
         IConsumerContext context,
         OperationResult result,
         CancellationToken cancellationToken = default
-    ) => processor.Execute((T)@event, context, result, cancellationToken);
+    ) => _processor.Execute((T)@event, context, result, cancellationToken);
 }

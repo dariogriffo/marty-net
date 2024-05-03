@@ -9,10 +9,16 @@ internal abstract class PreAppendEventActionWrapper
     internal abstract Task Execute(object @event, CancellationToken cancellationToken = default);
 }
 
-internal class PreAppendEventActionWrapper<T>(IPreAppendEventAction<T> action)
-    : PreAppendEventActionWrapper
+internal class PreAppendEventActionWrapper<T> : PreAppendEventActionWrapper
     where T : IEvent
 {
+    private readonly IPreAppendEventAction<T> _action;
+
+    public PreAppendEventActionWrapper(IPreAppendEventAction<T> action)
+    {
+        _action = action;
+    }
+
     internal override Task Execute(object @event, CancellationToken cancellationToken = default) =>
-        action.Execute((T)@event, cancellationToken);
+        _action.Execute((T)@event, cancellationToken);
 }

@@ -28,13 +28,13 @@ internal sealed class InternalPersistentSubscriber : IInternalPersistentSubscrib
     >? _onEventAppeared;
 
     public InternalPersistentSubscriber(
-        ILogger<InternalPersistentSubscriber> logger,
         IConnectionProvider connectionProvider,
         IConnectionStrategy connectionStrategy,
-        EventStoreSettings settings
+        EventStoreSettings settings,
+        ILoggerFactory? loggerFactory
     )
     {
-        _logger = logger;
+        _logger = loggerFactory.CreateLoggerFor<InternalPersistentSubscriber>();
         _connectionProvider = connectionProvider;
         _connectionStrategy = connectionStrategy;
         _settings = settings;
@@ -47,13 +47,9 @@ internal sealed class InternalPersistentSubscriber : IInternalPersistentSubscrib
         CancellationToken cancellationToken
     )
     {
-#pragma warning disable CA2208
-        _ =
+        string subscriptionGroup =
             _settings.SubscriptionSettings?.SubscriptionGroup
-            ?? throw new ArgumentNullException(
-                nameof(_settings.SubscriptionSettings.SubscriptionGroup)
-            );
-#pragma warning restore CA2208
+            ?? throw new ArgumentNullException(nameof(subscriptionGroup));
 
         _onEventAppeared ??= onEventAppeared;
         if (_disposables.ContainsKey(streamName))
@@ -90,16 +86,12 @@ internal sealed class InternalPersistentSubscriber : IInternalPersistentSubscrib
 
                 await _connectionProvider.PersistentSubscriptionClient.CreateToStreamAsync(
                     streamName,
-                    _settings.SubscriptionSettings.SubscriptionGroup!,
+                    subscriptionGroup!,
                     settings,
                     cancellationToken: c
                 );
 
-                _logger.LogTrace(
-                    "Created subscription for stream {StreamName} with group {Group}",
-                    streamName,
-                    _settings.SubscriptionSettings.SubscriptionGroup!
-                );
+                _logger.LogSubscriptionCreated(streamName, subscriptionGroup);
             }
             catch (RpcException ex) when (ex.StatusCode == StatusCode.AlreadyExists)
             {
@@ -107,26 +99,17 @@ internal sealed class InternalPersistentSubscriber : IInternalPersistentSubscrib
             }
             catch (Exception ex)
             {
-                _logger.LogError(
-                    ex,
-                    "Error while creating subscription to stream {StreamName} with group {Group}",
-                    streamName,
-                    _settings.SubscriptionSettings.SubscriptionGroup
-                );
+                _logger.LogErrorCreatingSubscription(ex, streamName, subscriptionGroup);
                 throw new SubscriptionFailed(streamName);
             }
 
-            _logger.LogTrace(
-                "Subscribing to stream {StreamName} with group {Group}",
-                streamName,
-                _settings.SubscriptionSettings.SubscriptionGroup
-            );
+            _logger.LogSubscribingToStream(streamName, subscriptionGroup);
 
             try
             {
                 Task<PersistentSubscription> task = streamName.Equals("$all")
                     ? _connectionProvider.PersistentSubscriptionClient.SubscribeToAllAsync(
-                        _settings.SubscriptionSettings.SubscriptionGroup,
+                        subscriptionGroup,
                         onEventAppeared,
                         OnSubscriptionDropped(streamName, subscriptionPosition),
                         bufferSize: _settings.SubscriptionBufferSize,
@@ -134,7 +117,7 @@ internal sealed class InternalPersistentSubscriber : IInternalPersistentSubscrib
                     )
                     : _connectionProvider.PersistentSubscriptionClient.SubscribeToStreamAsync(
                         streamName,
-                        _settings.SubscriptionSettings.SubscriptionGroup,
+                        subscriptionGroup,
                         onEventAppeared,
                         OnSubscriptionDropped(streamName, subscriptionPosition),
                         bufferSize: _settings.SubscriptionBufferSize,
@@ -146,22 +129,12 @@ internal sealed class InternalPersistentSubscriber : IInternalPersistentSubscrib
             }
             catch (Exception ex)
             {
-                _logger.LogError(
-                    ex,
-                    "Error while subscribing to stream {StreamName} with group {Group}",
-                    streamName,
-                    _settings.SubscriptionSettings.SubscriptionGroup
-                );
+                _logger.LogErrorSubscribingToStream(ex, streamName, subscriptionGroup);
 
                 throw new SubscriptionFailed(streamName);
             }
 
-            _logger.LogTrace(
-                "Subscribed to stream {StreamName} with group {Group} id {SubscriptionId}",
-                streamName,
-                _settings.SubscriptionSettings.SubscriptionGroup,
-                sub.SubscriptionId
-            );
+            _logger.LogSubscribedToStream(streamName, subscriptionGroup, sub.SubscriptionId);
         }
 
         StreamPosition ForNonAllStream()
@@ -211,9 +184,8 @@ internal sealed class InternalPersistentSubscriber : IInternalPersistentSubscrib
 
             if (_settings.ReconnectOnSubscriptionDropped)
             {
-                _logger.LogWarning(
+                _logger.LogWarningSubscriptionDropped(
                     exception,
-                    "Dropped subscription to stream {StreamName} with id {SubscriptionId}. Reason {Reason}",
                     streamName,
                     subscription.SubscriptionId,
                     reason
@@ -224,9 +196,8 @@ internal sealed class InternalPersistentSubscriber : IInternalPersistentSubscrib
             }
             else
             {
-                _logger.LogError(
+                _logger.LogErrorSubscriptionDropped(
                     exception,
-                    "Dropped subscription to stream {StreamName} with id {SubscriptionId}. Reason {Reason}",
                     streamName,
                     subscription.SubscriptionId,
                     reason

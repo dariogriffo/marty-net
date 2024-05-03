@@ -13,15 +13,22 @@ internal abstract class EventHandlerWrapper
     );
 }
 
-internal class EventHandlerWrapper<T>(IEventHandler<T> handler) : EventHandlerWrapper
+internal class EventHandlerWrapper<T> : EventHandlerWrapper
     where T : IEvent
 {
+    private readonly IEventHandler<T> _handler;
+
+    public EventHandlerWrapper(IEventHandler<T> handler)
+    {
+        _handler = handler;
+    }
+
     internal override Task<OperationResult> Handle(
         object @event,
         IConsumerContext context,
         CancellationToken cancellationToken = default
     )
     {
-        return handler.Handle((T)@event, context, cancellationToken);
+        return _handler.Handle((T)@event, context, cancellationToken);
     }
 }

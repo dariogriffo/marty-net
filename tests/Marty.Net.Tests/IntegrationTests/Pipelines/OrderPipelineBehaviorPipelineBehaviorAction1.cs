@@ -6,9 +6,15 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-public class OrderPipelineBehaviorPipelineBehaviorAction1(ICounter counter)
-    : IPipelineBehavior<OrderEventCancelled>
+public class OrderPipelineBehaviorPipelineBehaviorAction1 : IPipelineBehavior<OrderEventCancelled>
 {
+    private readonly ICounter _counter;
+
+    public OrderPipelineBehaviorPipelineBehaviorAction1(ICounter counter)
+    {
+        _counter = counter;
+    }
+
     public async Task<OperationResult> Execute(
         OrderEventCancelled @event,
         IConsumerContext context,
@@ -17,9 +23,9 @@ public class OrderPipelineBehaviorPipelineBehaviorAction1(ICounter counter)
     )
     {
         Console.WriteLine("a");
-        counter.Touch();
+        _counter.Touch();
         OperationResult result = await next();
-        counter.Touch();
+        _counter.Touch();
         return result;
     }
 }

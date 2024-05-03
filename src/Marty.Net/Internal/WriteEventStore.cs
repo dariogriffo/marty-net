@@ -26,16 +26,16 @@ internal sealed class WriteEventStore : IWriteEventStore
     public WriteEventStore(
         ISerializer serializer,
         IEventsStreamResolver eventsStreamResolver,
-        ILogger<WriteEventStore> logger,
         IConnectionProvider connectionProvider,
         IConnectionStrategy connectionStrategy,
         IHandlesFactory handlesFactory,
-        IServiceProvider serviceProvider
+        IServiceProvider serviceProvider,
+        ILoggerFactory? loggerFactory
     )
     {
         _serializer = serializer;
         _eventsStreamResolver = eventsStreamResolver;
-        _logger = logger;
+        _logger = loggerFactory.CreateLoggerFor<WriteEventStore>();
         _connectionProvider = connectionProvider;
         _connectionStrategy = connectionStrategy;
         _handlesFactory = handlesFactory;
@@ -49,12 +49,7 @@ internal sealed class WriteEventStore : IWriteEventStore
     )
         where T : IEvent
     {
-        _logger.LogTrace(
-            "Appending event {Event} of type {EventType} to stream {StreamName}",
-            @event,
-            @event.GetType(),
-            streamName
-        );
+        _logger.LogAppendingEventToStream(@event, streamName);
 
         StreamState expectedState = StreamState.NoStream;
         return SaveEvent(streamName, @event, expectedState, null, cancellationToken);
@@ -91,12 +86,7 @@ internal sealed class WriteEventStore : IWriteEventStore
                 }
             }
 
-            _logger.LogTrace(
-                "Appending event {Event} of type {EventType} to stream {StreamName}",
-                @event,
-                @event.GetType(),
-                streamName
-            );
+            _logger.LogAppendingEventToStream(@event, streamName);
 
             data[index] = _serializer.Serialize(@event);
         }
@@ -121,7 +111,7 @@ internal sealed class WriteEventStore : IWriteEventStore
                 }
             }
 
-            _logger.LogTrace("Event {Event} added", @event);
+            _logger.LogEventAdded(@event);
         }
 
         return result;
@@ -134,12 +124,7 @@ internal sealed class WriteEventStore : IWriteEventStore
     )
         where T : IEvent
     {
-        _logger.LogTrace(
-            "Appending event {Event} of type {EventType} to stream {StreamName}",
-            @event,
-            @event.GetType(),
-            streamName
-        );
+        _logger.LogAppendingEventToStream(@event, streamName);
 
         StreamState expectedState = StreamState.StreamExists;
         return SaveEvent(streamName, @event, expectedState, null, cancellationToken);
@@ -158,11 +143,7 @@ internal sealed class WriteEventStore : IWriteEventStore
             out List<PreAppendEventActionWrapper>? beforeActions
         );
 
-        _logger.LogTrace(
-            "Appending {EventsCount} events to stream {StreamName}",
-            events.Length,
-            streamName
-        );
+        _logger.LogAppendingEventsCountToStream(events, streamName);
 
         EventData[] data = new EventData[events.Length];
         for (int index = 0; index < events.Length; index++)
@@ -176,12 +157,7 @@ internal sealed class WriteEventStore : IWriteEventStore
                 }
             }
 
-            _logger.LogTrace(
-                "Appending event {Event} of type {EventType} to stream {StreamName}",
-                @event,
-                @event.GetType(),
-                streamName
-            );
+            _logger.LogAppendingEventToStream(@event, streamName);
 
             data[index] = _serializer.Serialize(@event);
         }
@@ -203,7 +179,7 @@ internal sealed class WriteEventStore : IWriteEventStore
 
         foreach (T @event in events)
         {
-            _logger.LogTrace("Event {Event} added", @event);
+            _logger.LogEventAdded(@event);
             if (!hasAfter)
             {
                 continue;
@@ -222,12 +198,7 @@ internal sealed class WriteEventStore : IWriteEventStore
         where T : IEvent
     {
         string streamName = _eventsStreamResolver.StreamForEvent(@event);
-        _logger.LogTrace(
-            "Appending event {Event} of type {EventType} to stream {StreamName}",
-            @event,
-            @event.GetType(),
-            streamName
-        );
+        _logger.LogAppendingEventToStream(@event, streamName);
         StreamState expectedState = StreamState.StreamExists;
         return SaveEvent(streamName, @event, expectedState, null, cancellationToken);
     }
@@ -240,12 +211,7 @@ internal sealed class WriteEventStore : IWriteEventStore
     )
         where T : IEvent
     {
-        _logger.LogTrace(
-            "Appending event {Event} of type {EventType} to stream {StreamName}",
-            @event,
-            @event.GetType(),
-            streamName
-        );
+        _logger.LogAppendingEventToStream(@event, streamName);
 
         StreamState expectedState = StreamState.StreamExists;
         return SaveEvent(
@@ -265,11 +231,8 @@ internal sealed class WriteEventStore : IWriteEventStore
     )
         where T : IEvent
     {
-        _logger.LogTrace(
-            "Appending {EventsCount} events to stream {StreamName}",
-            events.Length,
-            streamName
-        );
+        _logger.LogAppendingEventsCountToStream(events, streamName);
+
         bool hasBefore = _handlesFactory.TryGetPreAppendEventActionFor(
             events.First(),
             _serviceProvider,
@@ -309,7 +272,7 @@ internal sealed class WriteEventStore : IWriteEventStore
         for (int index = 0; index < events.Length; index++)
         {
             T @event = events[index];
-            _logger.LogTrace("Event {Event} added", @event);
+            _logger.LogEventAdded(@event);
             if (hasAfter)
             {
                 foreach (PostAppendEventActionWrapper action in afterActions!)
@@ -367,7 +330,9 @@ internal sealed class WriteEventStore : IWriteEventStore
             expectedStreamVersion,
             cancellationToken
         );
-        _logger.LogTrace("Event {Event} appended", @event);
+
+        _logger.LogEventAppended(@event);
+
         if (hasAfter)
         {
             foreach (PostAppendEventActionWrapper action in afterActions!)
@@ -393,8 +358,7 @@ internal sealed class WriteEventStore : IWriteEventStore
         {
             try
             {
-                IWriteResult result = null!;
-                _logger.LogTrace("Writing to stream {StreamName}", streamName);
+                IWriteResult result;
                 if (expectedStreamVersion.HasValue)
                 {
                     result = await _connectionProvider.WriteClient.AppendToStreamAsync(

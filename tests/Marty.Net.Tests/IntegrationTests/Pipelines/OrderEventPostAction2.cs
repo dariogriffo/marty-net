@@ -5,8 +5,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using OrderRefundRequested = Events.Orders.v2.OrderRefundRequested;
 
-public class OrderEventPostAction2(ICounter counter) : IPostProcessor<OrderRefundRequested>
+public class OrderEventPostAction2 : IPostProcessor<OrderRefundRequested>
 {
+    private readonly ICounter _counter;
+
+    public OrderEventPostAction2(ICounter counter)
+    {
+        _counter = counter;
+    }
+
     public Task<OperationResult> Execute(
         OrderRefundRequested @event,
         IConsumerContext context,
@@ -14,7 +21,7 @@ public class OrderEventPostAction2(ICounter counter) : IPostProcessor<OrderRefun
         CancellationToken cancellationToken
     )
     {
-        counter.Touch();
+        _counter.Touch();
         return Task.FromResult(result);
     }
 }

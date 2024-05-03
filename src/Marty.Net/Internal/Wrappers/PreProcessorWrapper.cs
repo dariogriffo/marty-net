@@ -13,12 +13,19 @@ internal abstract class PreProcessorWrapper
     );
 }
 
-internal class PreProcessorWrapper<T>(IPreProcessor<T> processor) : PreProcessorWrapper
+internal class PreProcessorWrapper<T> : PreProcessorWrapper
     where T : IEvent
 {
+    private readonly IPreProcessor<T> _processor;
+
+    public PreProcessorWrapper(IPreProcessor<T> processor)
+    {
+        _processor = processor;
+    }
+
     internal override Task Execute(
         object @event,
         IConsumerContext context,
         CancellationToken cancellationToken = default
-    ) => processor.Execute((T)@event, context, cancellationToken);
+    ) => _processor.Execute((T)@event, context, cancellationToken);
 }

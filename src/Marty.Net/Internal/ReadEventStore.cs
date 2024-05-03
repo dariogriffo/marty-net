@@ -5,6 +5,7 @@ using Contracts.Exceptions;
 using global::EventStore.Client;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -20,14 +21,14 @@ internal sealed class ReadEventStore : IReadEventStore
 
     public ReadEventStore(
         ISerializer serializer,
-        ILogger<ReadEventStore> logger,
         IConnectionProvider connectionProvider,
         IConnectionStrategy connectionStrategy,
-        EventStoreSettings settings
+        EventStoreSettings settings,
+        ILoggerFactory? loggerFactory
     )
     {
         _serializer = serializer;
-        _logger = logger;
+        _logger = loggerFactory.CreateLoggerFor<ReadEventStore>();
         _connectionProvider = connectionProvider;
         _settings = settings;
         _connectionStrategy = connectionStrategy;
@@ -39,7 +40,7 @@ internal sealed class ReadEventStore : IReadEventStore
     )
     {
         StreamPosition streamPosition = StreamPosition.Start;
-        _logger.LogTrace("Reading all events on stream {StreamName}", streamName);
+        _logger.LogReadAllEventsFromStream(streamName);
         return ReadStreamFromPosition(streamName, streamPosition, cancellationToken);
     }
 
@@ -50,12 +51,7 @@ internal sealed class ReadEventStore : IReadEventStore
     )
     {
         StreamPosition streamPosition = StreamPosition.FromInt64(position);
-
-        _logger.LogTrace(
-            "Reading events on stream {StreamName} from position {StreamPosition}",
-            streamName,
-            position
-        );
+        _logger.LogReadEventsFromStreamFromPosition(streamName, position);
         return ReadStreamFromPosition(streamName, streamPosition, cancellationToken);
     }
 
@@ -102,11 +98,7 @@ internal sealed class ReadEventStore : IReadEventStore
                     result.Add(item);
                 }
 
-                _logger.LogTrace(
-                    "{EventsCount} events read on stream {StreamName}",
-                    result.Count,
-                    streamName
-                );
+                _logger.LogEventsCountRead(streamName, result.Count);
             }
             catch (StreamNotFoundException)
             {
@@ -132,11 +124,7 @@ internal sealed class ReadEventStore : IReadEventStore
     {
         StreamPosition streamPosition = StreamPosition.Start;
 
-        _logger.LogTrace(
-            "Reading events on stream {StreamName} until position {StreamPosition}",
-            streamName,
-            position
-        );
+        _logger.LogReadEventsFromStreamUntilPosition(streamName, position);
 
         List<IEvent> result = [];
         await _connectionStrategy.Execute(DoRead, cancellationToken);
@@ -179,11 +167,7 @@ internal sealed class ReadEventStore : IReadEventStore
                     ++i;
                 }
 
-                _logger.LogTrace(
-                    "{EventsCount} events read on stream {StreamName}",
-                    result.Count,
-                    streamName
-                );
+                _logger.LogEventsCountRead(streamName, result.Count);
             }
             catch (StreamNotFoundException)
             {
@@ -209,7 +193,7 @@ internal sealed class ReadEventStore : IReadEventStore
     {
         StreamPosition streamPosition = StreamPosition.Start;
 
-        _logger.LogTrace("Reading events on stream {StreamName}", streamName);
+        _logger.LogReadEventsFromStreamUntilTimestamp(streamName, timestamp);
 
         List<IEvent> result = [];
         await _connectionStrategy.Execute(DoRead, cancellationToken);
@@ -249,11 +233,7 @@ internal sealed class ReadEventStore : IReadEventStore
                     result.Add(item);
                 }
 
-                _logger.LogTrace(
-                    "{EventsCount} events loaded from stream {StreamName}",
-                    result.Count,
-                    streamName
-                );
+                _logger.LogEventsCountRead(streamName, result.Count);
             }
             catch (StreamNotFoundException)
             {
@@ -309,11 +289,7 @@ internal sealed class ReadEventStore : IReadEventStore
                     result.Add(item);
                 }
 
-                _logger.LogTrace(
-                    "{EventsCount} events read on stream {StreamName}",
-                    result.Count,
-                    streamName
-                );
+                _logger.LogEventsCountRead(streamName, result.Count);
             }
             catch (StreamNotFoundException)
             {

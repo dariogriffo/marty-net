@@ -5,8 +5,15 @@ using Events.Orders;
 using System.Threading;
 using System.Threading.Tasks;
 
-public class OrderEventPostAction4(ICounter counter) : IPostProcessor<OrderAbandoned>
+public class OrderEventPostAction4 : IPostProcessor<OrderAbandoned>
 {
+    private readonly ICounter _counter;
+
+    public OrderEventPostAction4(ICounter counter)
+    {
+        _counter = counter;
+    }
+
     public Task<OperationResult> Execute(
         OrderAbandoned @event,
         IConsumerContext context,
@@ -14,7 +21,7 @@ public class OrderEventPostAction4(ICounter counter) : IPostProcessor<OrderAband
         CancellationToken cancellationToken
     )
     {
-        counter.Touch();
+        _counter.Touch();
         return Task.FromResult(result);
     }
 }

@@ -19,15 +19,15 @@ internal class PersistentSubscriber : IPersistentSubscriber
     private readonly IInternalPersistentSubscriber _subscriber;
 
     public PersistentSubscriber(
-        ILogger<PersistentSubscriber> logger,
         IInternalPersistentSubscriber subscriber,
         IHandlesFactory handlesFactory,
         ISerializer serializer,
         IOptions<MartyConfiguration> configuration,
-        EventStoreSettings settings
+        EventStoreSettings settings,
+        ILoggerFactory? loggerFactory
     )
     {
-        _logger = logger;
+        _logger = loggerFactory.CreateLoggerFor<PersistentSubscriber>();
         _subscriber = subscriber;
         _handlesFactory = handlesFactory;
         _serializer = serializer;
@@ -82,8 +82,8 @@ internal class PersistentSubscriber : IPersistentSubscriber
         ExecutionPlan? plan;
         try
         {
-            IEvent? deserialize = _serializer.Deserialize(resolvedEvent.Event);
-            if (deserialize is null)
+            IEvent? @event = _serializer.Deserialize(resolvedEvent.Event);
+            if (@event is null)
             {
                 if (_configuration.Value.TreatNonMartyEventsErrors)
                 {
@@ -97,8 +97,7 @@ internal class PersistentSubscriber : IPersistentSubscriber
                 return;
             }
 
-            IEvent @event = deserialize!;
-            _logger.LogTrace("Event {Event} arrived", @event);
+            _logger.LogEventArrived(@event);
 
             plan = _handlesFactory.TryGetExecutionPlanFor(@event);
             if (plan is null)
@@ -109,7 +108,8 @@ internal class PersistentSubscriber : IPersistentSubscriber
                 }
                 else
                 {
-                    _logger.LogTrace("Event {Event} ACK with no handler", @event);
+                    _logger.LogEventAckWithoutHandler(@event);
+
                     await subscription.Ack(resolvedEvent);
                 }
 
@@ -131,7 +131,8 @@ internal class PersistentSubscriber : IPersistentSubscriber
             OperationResult result = await plan.Behaviors[0]
                 .Execute(@event, context, cancellationToken);
 
-            _logger.LogTrace("Event {Event} handled with result {Result:G}", @event, result);
+            _logger.LogEventHandled(@event, result);
+
             await (
                 result switch
                 {
@@ -181,12 +182,8 @@ internal class PersistentSubscriber : IPersistentSubscriber
             ex.Message,
             resolvedEvent
         );
-        _logger.LogError(
-            ex,
-            "Error processing event {ResolvedEvent} retryCount {RetryCount}",
-            resolvedEvent,
-            retryCount
-        );
+
+        _logger.LogErrorProcessingEventWithRetry(ex, resolvedEvent, retryCount);
     }
 
     private async Task ParkEventAndLogWarning(
@@ -195,7 +192,7 @@ internal class PersistentSubscriber : IPersistentSubscriber
         ResolvedEvent resolvedEvent
     )
     {
-        _logger.LogWarning("Handler for event of type {EventType} not found", @event.GetType());
+        _logger.LogHandlerForEventNotFound(@event);
         await subscription.Nack(
             PersistentSubscriptionNakEventAction.Park,
             $"Handler for event of type {@event.GetType()} not found",

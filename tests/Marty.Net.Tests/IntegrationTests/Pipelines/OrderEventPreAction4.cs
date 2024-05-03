@@ -5,15 +5,22 @@ using Events.Orders;
 using System.Threading;
 using System.Threading.Tasks;
 
-public class OrderEventPreAction4(ICounter counter) : IPreProcessor<OrderAbandoned>
+public class OrderEventPreAction4 : IPreProcessor<OrderAbandoned>
 {
+    private readonly ICounter _counter;
+
+    public OrderEventPreAction4(ICounter counter)
+    {
+        _counter = counter;
+    }
+
     public Task Execute(
         OrderAbandoned @event,
         IConsumerContext context,
         CancellationToken cancellationToken
     )
     {
-        counter.Touch();
+        _counter.Touch();
         return Task.CompletedTask;
     }
 }
