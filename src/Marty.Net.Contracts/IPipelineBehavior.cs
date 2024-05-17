@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 /// </summary>
 /// <typeparam name="T"></typeparam>
 [PipelineBehavior]
-public interface IPipelineBehavior<in T>
+public interface IPipelineBehavior<T>
     where T : IEvent
 {
     /// <summary>
@@ -26,7 +26,7 @@ public interface IPipelineBehavior<in T>
     Task<OperationResult> Execute(
         T @event,
         IConsumerContext context,
-        Func<Task<OperationResult>> next,
+        Func<T, IConsumerContext, CancellationToken, Task<OperationResult>> next,
         CancellationToken cancellationToken = default
     );
 }

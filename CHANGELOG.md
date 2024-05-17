@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.0](https://github.com/dariogriffo/marty-net/blob/main/CHANGELOG.md)
+
+Remove closure on behavior calls
+
 ## [1.0.4](https://github.com/dariogriffo/marty-net/blob/main/CHANGELOG.md)
 
 Improve logging

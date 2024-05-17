@@ -50,7 +50,7 @@ internal sealed class HandlesFactory : IHandlesFactory
         {
             try
             {
-                OperationResult result = await Next();
+                OperationResult result = await Next(@event, context, cancellationToken);
                 return result;
             }
             finally
@@ -60,16 +60,19 @@ internal sealed class HandlesFactory : IHandlesFactory
         }
     }
 
-    class ProcessorsExecutorBehavior : PipelineBehaviorWrapper
+    class ExecutorBehavior : PipelineBehaviorWrapper
     {
+        private readonly EventHandlerWrapper _handler;
         private readonly PreProcessorWrapper[]? _preProcessors;
         private readonly PostProcessorWrapper[]? _postProcessors;
 
-        public ProcessorsExecutorBehavior(
+        public ExecutorBehavior(
+            EventHandlerWrapper handler,
             PreProcessorWrapper[]? preProcessors,
             PostProcessorWrapper[]? postProcessors
         )
         {
+            _handler = handler;
             _preProcessors = preProcessors;
             _postProcessors = postProcessors;
         }
@@ -88,7 +91,7 @@ internal sealed class HandlesFactory : IHandlesFactory
                 }
             }
 
-            OperationResult result = await Next();
+            OperationResult result = await _handler.Handle(@event, context, cancellationToken);
             if (_postProcessors is null)
             {
                 return result;
@@ -162,23 +165,19 @@ internal sealed class HandlesFactory : IHandlesFactory
             1 //Scope disposer
             + (behaviorWrappers?.Length ?? 0)
             + //All behaviors
-            +((preProcessorWrappers is not null || postProcessorWrappers is not null) ? 1 : 0); //Handler + processors
+            +1; //Handler + processors
 
         PipelineBehaviorWrapper[] behaviors = new PipelineBehaviorWrapper[behaviorsSize];
 
+        //We dispose the scope at the end of the pipeline
         behaviors[0] = new ScopeDisposerBehavior(scope);
 
-        if (preProcessorWrappers is not null || postProcessorWrappers is not null)
-        {
-            behaviors[^1] = new ProcessorsExecutorBehavior(
-                preProcessorWrappers,
-                postProcessorWrappers
-            );
-        }
+        //last behavior executes the handlers and any registered pre and post processors
+        behaviors[^1] = new ExecutorBehavior(handler, preProcessorWrappers, postProcessorWrappers);
 
         behaviorWrappers?.CopyTo(behaviors, 1);
 
-        return new(handler, behaviors);
+        return new(behaviors);
     }
 
     private static T CreateWrappedService<T>(

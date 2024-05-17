@@ -12,7 +12,7 @@ public class OpenBehavior<T> : IPipelineBehavior<T>
     public async Task<OperationResult> Execute(
         T @event,
         IConsumerContext context,
-        Func<Task<OperationResult>> next,
+        Func<T, IConsumerContext, CancellationToken, Task<OperationResult>> next,
         CancellationToken cancellationToken = default
     )
     {
@@ -20,7 +20,7 @@ public class OpenBehavior<T> : IPipelineBehavior<T>
             "1- Pipeline before for requested event {0}",
             JsonSerializer.Serialize(@event)
         );
-        OperationResult result = await next();
+        OperationResult result = await next(@event, context, cancellationToken);
         Console.WriteLine(
             "1- Pipeline after for requested event {0}",
             JsonSerializer.Serialize(@event)

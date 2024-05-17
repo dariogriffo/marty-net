@@ -7,13 +7,11 @@ using Wrappers;
 
 internal record ExecutionPlan
 {
-    public ExecutionPlan(EventHandlerWrapper handler, PipelineBehaviorWrapper[] behaviors)
+    public ExecutionPlan(PipelineBehaviorWrapper[] behaviors)
     {
-        Handler = handler;
         Behaviors = behaviors;
     }
 
-    internal EventHandlerWrapper Handler { get; init; } = null!;
     internal PipelineBehaviorWrapper[] Behaviors { get; init; } = null!;
 }
 

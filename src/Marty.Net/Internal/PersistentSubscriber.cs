@@ -118,14 +118,10 @@ internal class PersistentSubscriber : IPersistentSubscriber
 
             ConsumerContext context = new(resolvedEvent.Event.EventStreamId, retryCount);
 
-            plan.Behaviors[^1].Next = async () =>
-                await plan.Handler.Handle(@event, context, cancellationToken);
-
             for (int i = plan.Behaviors.Length - 2; i >= 0; i--)
             {
                 var index = i;
-                plan.Behaviors[i].Next = async () =>
-                    await plan.Behaviors[index + 1].Execute(@event, context, cancellationToken);
+                plan.Behaviors[i].Next = plan.Behaviors[index + 1].Execute;
             }
 
             OperationResult result = await plan.Behaviors[0]

@@ -7,7 +7,13 @@ using System.Threading.Tasks;
 
 internal abstract class PipelineBehaviorWrapper
 {
-    protected internal Func<Task<OperationResult>> Next { get; set; } = null!;
+    protected internal Func<
+        object,
+        IConsumerContext,
+        CancellationToken,
+        Task<OperationResult>
+    > Next
+    { get; set; } = null!;
 
     internal abstract Task<OperationResult> Execute(
         object @event,
@@ -30,5 +36,9 @@ internal class PipelineBehaviorWrapper<T> : PipelineBehaviorWrapper
         object @event,
         IConsumerContext context,
         CancellationToken cancellationToken = default
-    ) => _behavior.Execute((T)@event, context, Next, cancellationToken);
+    )
+    {
+        var next = Next as Func<T, IConsumerContext, CancellationToken, Task<OperationResult>>;
+        return _behavior.Execute((T)@event, context, next!, cancellationToken);
+    }
 }

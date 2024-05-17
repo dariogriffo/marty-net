@@ -18,13 +18,13 @@ public class OrderPipelineBehaviorPipelineBehaviorAction1 : IPipelineBehavior<Or
     public async Task<OperationResult> Execute(
         OrderEventCancelled @event,
         IConsumerContext context,
-        Func<Task<OperationResult>> next,
-        CancellationToken cancellationToken
+        Func<OrderEventCancelled, IConsumerContext, CancellationToken, Task<OperationResult>> next,
+        CancellationToken cancellationToken = default
     )
     {
         Console.WriteLine("a");
         _counter.Touch();
-        OperationResult result = await next();
+        OperationResult result = await next(@event, context, cancellationToken);
         _counter.Touch();
         return result;
     }
