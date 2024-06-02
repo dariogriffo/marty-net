@@ -1,8 +1,8 @@
 ﻿namespace Marty.Net.Tests.Events.Orders.v2;
 
-using Contracts;
 using System;
 using System.Collections.Frozen;
+using Contracts;
 
 public class OrderRefundRequested : IEvent
 {

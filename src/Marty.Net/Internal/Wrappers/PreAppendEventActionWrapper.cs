@@ -1,8 +1,8 @@
 namespace Marty.Net.Internal.Wrappers;
 
-using Contracts;
 using System.Threading;
 using System.Threading.Tasks;
+using Contracts;
 
 internal abstract class PreAppendEventActionWrapper
 {
@@ -20,5 +20,5 @@ internal class PreAppendEventActionWrapper<T> : PreAppendEventActionWrapper
     }
 
     internal override Task Execute(object @event, CancellationToken cancellationToken = default) =>
-        _action.Execute((T)@event, cancellationToken);
+        _action.Execute((WriteEnvelope<T>)@event, cancellationToken);
 }

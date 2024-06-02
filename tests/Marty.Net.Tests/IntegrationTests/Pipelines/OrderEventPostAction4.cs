@@ -1,9 +1,9 @@
 namespace Marty.Net.Tests.IntegrationTests.Pipelines;
 
-using Contracts;
-using Events.Orders;
 using System.Threading;
 using System.Threading.Tasks;
+using Contracts;
+using Events.Orders;
 
 public class OrderEventPostAction4 : IPostProcessor<OrderAbandoned>
 {

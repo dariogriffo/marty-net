@@ -1,9 +1,9 @@
 namespace Marty.Net.Internal;
 
-using Contracts.Internal;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
+using Contracts.Internal;
+using Microsoft.Extensions.DependencyInjection;
 
 internal sealed class HandlersAndEventTypes
 {

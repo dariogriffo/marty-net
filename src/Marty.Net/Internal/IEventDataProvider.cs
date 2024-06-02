@@ -1,7 +1,7 @@
 namespace Marty.Net.Internal;
 
-using global::EventStore.Client;
 using System;
+using global::EventStore.Client;
 
 internal interface IEventDataProvider
 {

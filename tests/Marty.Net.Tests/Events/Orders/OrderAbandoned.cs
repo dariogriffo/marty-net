@@ -1,8 +1,7 @@
 namespace Marty.Net.Tests.Events.Orders;
 
-using Contracts;
 using System;
-using System.Collections.Frozen;
+using Contracts;
 
 public class OrderAbandoned : IEvent
 {
@@ -11,6 +10,4 @@ public class OrderAbandoned : IEvent
     public Guid OrderId { get; init; }
 
     public DateTimeOffset Timestamp { get; init; } = DateTimeOffset.UtcNow;
-
-    public FrozenDictionary<string, string>? Metadata { get; set; }
 }

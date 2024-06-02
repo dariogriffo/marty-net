@@ -1,8 +1,8 @@
 namespace Marty.Net.Contracts;
 
-using Internal;
 using System.Threading;
 using System.Threading.Tasks;
+using Internal;
 
 /// <summary>
 ///     Action to be executed after the <see cref="IEventHandler{T}" />

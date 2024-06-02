@@ -1,12 +1,12 @@
-﻿using Common.Aggregates;
+﻿using System;
+using System.Text.Json;
+using Common.Aggregates;
 using Common.Commands;
 using Marty.Net;
 using Marty.Net.Aggregates.Contracts;
 using Marty.Net.Contracts;
 using Microsoft.Extensions.DependencyInjection;
 using Publisher;
-using System;
-using System.Text.Json;
 
 ServiceCollection services = new();
 

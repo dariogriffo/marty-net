@@ -1,13 +1,12 @@
 namespace Marty.Net.Internal;
 
-using Contracts;
-using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Contracts;
+using Microsoft.Extensions.DependencyInjection;
 using Wrappers;
 
 internal sealed class HandlesFactory : IHandlesFactory
@@ -20,9 +19,8 @@ internal sealed class HandlesFactory : IHandlesFactory
         internal (Type Wrapper, Type Service) Handler { get; init; }
     }
 
-    private readonly HashSet<Type> _registeredHandlers;
     private readonly IServiceProvider _serviceProvider;
-    private readonly ConcurrentDictionary<Type, EventRegistry> _plans = new();
+    private readonly Dictionary<Type, EventRegistry> _plans = new();
 
     public HandlesFactory(
         IServiceProvider serviceProvider,
@@ -30,7 +28,29 @@ internal sealed class HandlesFactory : IHandlesFactory
     )
     {
         _serviceProvider = serviceProvider;
-        _registeredHandlers = handlersAndEventTypes.RegisteredEventsAndHandlers;
+        foreach (Type eventType in handlersAndEventTypes.RegisteredEventsAndHandlers)
+        {
+            SetupEventRegistry(eventType);
+        }
+    }
+
+    private void SetupEventRegistry(Type eventType)
+    {
+        Type wrapperType = typeof(EventHandlerWrapper<>).MakeGenericType(eventType);
+        Type handlerType = typeof(IEventHandler<>).MakeGenericType(eventType);
+        Type behaviorWrapperType = typeof(PipelineBehaviorWrapper<>).MakeGenericType(eventType);
+        Type behaviorType = typeof(IPipelineBehavior<>).MakeGenericType(eventType);
+        Type preProcessorWrapperType = typeof(PreProcessorWrapper<>).MakeGenericType(eventType);
+        Type preProcessorType = typeof(IPreProcessor<>).MakeGenericType(eventType);
+        Type postWrapperType = typeof(PostProcessorWrapper<>).MakeGenericType(eventType);
+        Type postProcessorType = typeof(IPostProcessor<>).MakeGenericType(eventType);
+        _plans[eventType] = new EventRegistry()
+        {
+            Behaviors = (behaviorWrapperType, behaviorType),
+            PreProcessorWrappers = (preProcessorWrapperType, preProcessorType),
+            PostProcessorWrappers = (postWrapperType, postProcessorType),
+            Handler = (wrapperType, handlerType),
+        };
     }
 
     class ScopeDisposerBehavior : PipelineBehaviorWrapper
@@ -109,39 +129,12 @@ internal sealed class HandlesFactory : IHandlesFactory
     public ExecutionPlan? TryGetExecutionPlanFor(IEvent @event)
     {
         Type eventType = @event.GetType();
-        if (!_registeredHandlers.TryGetValue(eventType, out _))
+        if (!_plans.TryGetValue(eventType, out EventRegistry? registry))
         {
             return null;
         }
 
-        IServiceScope scope = _serviceProvider.CreateScope()!;
-        EventRegistry registry = _plans.GetOrAdd(
-            eventType,
-            (_) =>
-            {
-                Type wrapperType = typeof(EventHandlerWrapper<>).MakeGenericType(@event.GetType());
-                Type handlerType = typeof(IEventHandler<>).MakeGenericType(@event.GetType());
-                Type behaviorWrapperType = typeof(PipelineBehaviorWrapper<>).MakeGenericType(
-                    @event.GetType()
-                );
-                Type behaviorType = typeof(IPipelineBehavior<>).MakeGenericType(@event.GetType());
-                Type preProcessorWrapperType = typeof(PreProcessorWrapper<>).MakeGenericType(
-                    @event.GetType()
-                );
-                Type preProcessorType = typeof(IPreProcessor<>).MakeGenericType(@event.GetType());
-                Type postWrapperType = typeof(PostProcessorWrapper<>).MakeGenericType(
-                    @event.GetType()
-                );
-                Type postProcessorType = typeof(IPostProcessor<>).MakeGenericType(@event.GetType());
-                return new EventRegistry()
-                {
-                    Behaviors = (behaviorWrapperType, behaviorType),
-                    PreProcessorWrappers = (preProcessorWrapperType, preProcessorType),
-                    PostProcessorWrappers = (postWrapperType, postProcessorType),
-                    Handler = (wrapperType, handlerType),
-                };
-            }
-        );
+        IServiceScope scope = _serviceProvider.CreateScope();
 
         EventHandlerWrapper handler = CreateWrappedService<EventHandlerWrapper>(
             scope,
@@ -198,7 +191,7 @@ internal sealed class HandlesFactory : IHandlesFactory
         where T : class
     {
         IEnumerable<object?> services = scope.ServiceProvider.GetServices(tuple.Service);
-        T[]? wrappers = null!;
+        T[] wrappers = null!;
         if (services.Any())
         {
             wrappers = services

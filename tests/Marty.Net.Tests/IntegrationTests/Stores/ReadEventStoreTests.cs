@@ -1,15 +1,15 @@
 ﻿namespace Marty.Net.Tests.IntegrationTests.Stores;
 
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Contracts;
 using Contracts.Exceptions;
 using Events.Orders;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Xunit;
 
 public class ReadEventStoreTests
@@ -36,11 +36,11 @@ public class ReadEventStoreTests
         string streamName = $"order-{orderId.ToString()}";
         IEvent[] writeEvents = [e1, e2, e3];
         await eventStore.Save(streamName, writeEvents, default);
-        List<IEvent> events = await readEventStore.ReadStream(streamName, default);
+        List<ReadEnvelope> events = await readEventStore.ReadStream(streamName, default);
         events.Count.Should().Be(3);
-        events[0].Should().BeEquivalentTo(e1);
-        events[1].Should().BeEquivalentTo(e2);
-        events[2].Should().BeEquivalentTo(e3);
+        events[0].Event.Should().BeEquivalentTo(e1);
+        events[1].Event.Should().BeEquivalentTo(e2);
+        events[2].Event.Should().BeEquivalentTo(e3);
     }
 
     [Fact]
@@ -66,14 +66,14 @@ public class ReadEventStoreTests
         IEvent[] writeEvents = [e1, e2, e3];
         await eventStore.Save(streamName, writeEvents, default);
         int position = 1;
-        List<IEvent> events = await readEventStore.ReadStreamUntilPosition(
+        List<ReadEnvelope> events = await readEventStore.ReadStreamUntilPosition(
             streamName,
             position,
             default
         );
         events.Count.Should().Be(2);
-        events[0].Should().BeEquivalentTo(e1);
-        events[1].Should().BeEquivalentTo(e2);
+        events[0].Event.Should().BeEquivalentTo(e1);
+        events[1].Event.Should().BeEquivalentTo(e2);
     }
 
     [Fact]
@@ -99,14 +99,14 @@ public class ReadEventStoreTests
         string streamName = $"order-{orderId.ToString()}";
         IEvent[] writeEvents = [e1, e2, e3];
         await eventStore.Save(streamName, writeEvents, default);
-        List<IEvent> events = await readEventStore.ReadStreamUntilTimestamp(
+        List<ReadEnvelope> events = await readEventStore.ReadStreamUntilTimestamp(
             streamName,
             e2.Timestamp,
             default
         );
         events.Count.Should().Be(2);
-        events[0].Should().BeEquivalentTo(e1);
-        events[1].Should().BeEquivalentTo(e2);
+        events[0].Event.Should().BeEquivalentTo(e1);
+        events[1].Event.Should().BeEquivalentTo(e2);
     }
 
     [Fact]
@@ -132,10 +132,14 @@ public class ReadEventStoreTests
         string streamName = $"order-{orderId.ToString()}";
         IEvent[] writeEvents = [e1, e2, e3];
         await eventStore.Save(streamName, writeEvents, default);
-        List<IEvent> events = await readEventStore.ReadStreamUntilPosition(streamName, 1, default);
+        List<ReadEnvelope> events = await readEventStore.ReadStreamUntilPosition(
+            streamName,
+            1,
+            default
+        );
         events.Count.Should().Be(2);
-        events[0].Should().BeEquivalentTo(e1);
-        events[1].Should().BeEquivalentTo(e2);
+        events[0].Event.Should().BeEquivalentTo(e1);
+        events[1].Event.Should().BeEquivalentTo(e2);
     }
 
     [Fact]
@@ -161,10 +165,14 @@ public class ReadEventStoreTests
         string streamName = $"order-{orderId.ToString()}";
         IEvent[] writeEvents = [e1, e2, e3];
         await eventStore.Save(streamName, writeEvents, default);
-        List<IEvent> events = await readEventStore.ReadStreamFromPosition(streamName, 1, default);
+        List<ReadEnvelope> events = await readEventStore.ReadStreamFromPosition(
+            streamName,
+            1,
+            default
+        );
         events.Count.Should().Be(2);
-        events[0].Should().BeEquivalentTo(e2);
-        events[1].Should().BeEquivalentTo(e3);
+        events[0].Event.Should().BeEquivalentTo(e2);
+        events[1].Event.Should().BeEquivalentTo(e3);
     }
 
     [Fact]
@@ -190,14 +198,14 @@ public class ReadEventStoreTests
         string streamName = $"order-{orderId.ToString()}";
         IEvent[] writeEvents = [e1, e2, e3];
         await eventStore.Save(streamName, writeEvents, default);
-        List<IEvent> events = await readEventStore.ReadStreamFromTimestamp(
+        List<ReadEnvelope> events = await readEventStore.ReadStreamFromTimestamp(
             streamName,
             e2.Timestamp,
             default
         );
         events.Count.Should().Be(2);
-        events[0].Should().BeEquivalentTo(e2);
-        events[1].Should().BeEquivalentTo(e3);
+        events[0].Event.Should().BeEquivalentTo(e2);
+        events[1].Event.Should().BeEquivalentTo(e3);
     }
 
     [Fact]

@@ -1,12 +1,12 @@
 namespace Marty.Net.Contracts.Internal;
 
-using Aggregates.Contracts;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Aggregates.Contracts;
+using Microsoft.Extensions.Logging;
 
 internal sealed class AggregatesStore : IAggregateStore
 {
@@ -62,7 +62,7 @@ internal sealed class AggregatesStore : IAggregateStore
 
         _logger.LogLoadingAggregate(streamName);
 
-        List<IEvent> data = await _eventStore.ReadStream(streamName, cancellationToken);
+        List<ReadEnvelope> data = await _eventStore.ReadStream(streamName, cancellationToken);
         aggregate.LoadFromHistory(data);
 
         _logger.LogAggregateLoaded(streamName);
@@ -80,7 +80,7 @@ internal sealed class AggregatesStore : IAggregateStore
         string id = aggregate.Id;
         string streamName = _streamNameResolver.StreamForAggregate(aggregate);
         _logger.LogLoadingAggregateUntilPosition(streamName, position);
-        List<IEvent> data = await _eventStore.ReadStreamUntilPosition(
+        List<ReadEnvelope> data = await _eventStore.ReadStreamUntilPosition(
             streamName,
             position,
             cancellationToken
@@ -99,7 +99,7 @@ internal sealed class AggregatesStore : IAggregateStore
     {
         string streamName = _streamNameResolver.StreamForAggregate(aggregate);
         _logger.LogLoadingAggregateFromPosition(streamName, position);
-        List<IEvent> data = await _eventStore.ReadStreamFromPosition(
+        List<ReadEnvelope> data = await _eventStore.ReadStreamFromPosition(
             streamName,
             position,
             cancellationToken
@@ -121,7 +121,7 @@ internal sealed class AggregatesStore : IAggregateStore
 
         _logger.LogLoadingAggregateFromTimestamp(streamName, timestamp);
 
-        List<IEvent> data = await _eventStore.ReadStreamFromTimestamp(
+        List<ReadEnvelope> data = await _eventStore.ReadStreamFromTimestamp(
             streamName,
             timestamp,
             cancellationToken
@@ -144,7 +144,7 @@ internal sealed class AggregatesStore : IAggregateStore
 
         _logger.LogLoadingAggregateUntilTimestamp(streamName, timestamp);
 
-        List<IEvent> data = await _eventStore.ReadStreamUntilTimestamp(
+        List<ReadEnvelope> data = await _eventStore.ReadStreamUntilTimestamp(
             streamName,
             timestamp,
             cancellationToken
@@ -172,7 +172,7 @@ internal sealed class AggregatesStore : IAggregateStore
     {
         string streamName = _streamNameResolver.StreamForAggregate<T>(id);
         _logger.LogLoadingAggregate(streamName);
-        List<IEvent> data = await _eventStore.ReadStream(streamName, cancellationToken);
+        List<ReadEnvelope> data = await _eventStore.ReadStream(streamName, cancellationToken);
         T aggregate = new();
         aggregate.LoadFromHistory(data);
         _logger.LogAggregateLoaded(id);
@@ -187,7 +187,7 @@ internal sealed class AggregatesStore : IAggregateStore
     {
         string id = _streamNameResolver.AggregateIdForStream(streamName);
         _logger.LogLoadingAggregate(streamName);
-        List<IEvent> data = await _eventStore.ReadStream(streamName, cancellationToken);
+        List<ReadEnvelope> data = await _eventStore.ReadStream(streamName, cancellationToken);
         T aggregate = new();
 
         aggregate.LoadFromHistory(data);
@@ -204,7 +204,7 @@ internal sealed class AggregatesStore : IAggregateStore
         where T : Aggregate, new()
     {
         _logger.LogLoadingAggregate(streamName);
-        List<IEvent> history = await _eventStore.ReadStreamUntilPosition(
+        List<ReadEnvelope> history = await _eventStore.ReadStreamUntilPosition(
             streamName,
             position,
             cancellationToken
@@ -226,7 +226,7 @@ internal sealed class AggregatesStore : IAggregateStore
     {
         _logger.LogLoadingAggregateFromPosition(streamName, position);
 
-        List<IEvent> data = await _eventStore.ReadStreamFromPosition(
+        List<ReadEnvelope> data = await _eventStore.ReadStreamFromPosition(
             streamName,
             position,
             cancellationToken
@@ -245,9 +245,11 @@ internal sealed class AggregatesStore : IAggregateStore
         where T : Aggregate, new()
     {
         _logger.LogLoadingAggregate(streamName);
-        List<IEvent> data = await _eventStore.ReadStream(streamName, cancellationToken);
+        List<ReadEnvelope> data = await _eventStore.ReadStream(streamName, cancellationToken);
         T aggregate = new();
-        IEnumerable<IEvent> history = data.TakeWhile(x => x.Timestamp < lastEventToLoad.Timestamp);
+        IEnumerable<ReadEnvelope> history = data.TakeWhile(x =>
+            x.Event.Timestamp < lastEventToLoad.Timestamp
+        );
 
         aggregate.LoadFromHistory(history);
         _logger.LogAggregateLoaded(streamName);

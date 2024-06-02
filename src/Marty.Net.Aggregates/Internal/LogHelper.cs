@@ -1,8 +1,8 @@
 namespace Marty.Net.Contracts.Internal;
 
+using System;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using System;
 
 internal static class LogHelper
 {

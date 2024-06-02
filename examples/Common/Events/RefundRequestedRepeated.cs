@@ -1,11 +1,13 @@
 ﻿namespace Common.Events;
 
-using Marty.Net.Contracts;
 using System;
 using System.Collections.Frozen;
+using Marty.Net.Contracts;
 
 public class RefundRequestedRepeated : IEvent
 {
+    public Guid Id { get; } = Guid.NewGuid();
+
     public string PaymentId { get; init; } = null!;
 
     public string RefundId { get; init; } = null!;

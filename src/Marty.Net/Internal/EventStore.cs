@@ -1,10 +1,10 @@
 namespace Marty.Net.Internal;
 
-using Contracts;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Contracts;
 
 internal sealed class EventStore : IEventStore
 {
@@ -104,7 +104,7 @@ internal sealed class EventStore : IEventStore
         return _write.Append(@event, cancellationToken);
     }
 
-    public Task<List<IEvent>> ReadStreamFromPosition(
+    public Task<List<ReadEnvelope>> ReadStreamFromPosition(
         string streamName,
         long position,
         CancellationToken cancellationToken = default
@@ -113,7 +113,7 @@ internal sealed class EventStore : IEventStore
         return _read.ReadStreamFromPosition(streamName, position, cancellationToken);
     }
 
-    public Task<List<IEvent>> ReadStreamUntilPosition(
+    public Task<List<ReadEnvelope>> ReadStreamUntilPosition(
         string streamName,
         long position,
         CancellationToken cancellationToken = default
@@ -122,7 +122,7 @@ internal sealed class EventStore : IEventStore
         return _read.ReadStreamUntilPosition(streamName, position, cancellationToken);
     }
 
-    public Task<List<IEvent>> ReadStreamUntilTimestamp(
+    public Task<List<ReadEnvelope>> ReadStreamUntilTimestamp(
         string streamName,
         DateTimeOffset timestamp,
         CancellationToken cancellationToken = default
@@ -131,7 +131,7 @@ internal sealed class EventStore : IEventStore
         return _read.ReadStreamUntilTimestamp(streamName, timestamp, cancellationToken);
     }
 
-    public Task<List<IEvent>> ReadStreamFromTimestamp(
+    public Task<List<ReadEnvelope>> ReadStreamFromTimestamp(
         string streamName,
         DateTimeOffset timestamp,
         CancellationToken cancellationToken
@@ -140,7 +140,7 @@ internal sealed class EventStore : IEventStore
         return _read.ReadStreamFromTimestamp(streamName, timestamp, cancellationToken);
     }
 
-    public Task<List<IEvent>> ReadStream(
+    public Task<List<ReadEnvelope>> ReadStream(
         string streamName,
         CancellationToken cancellationToken = default
     )

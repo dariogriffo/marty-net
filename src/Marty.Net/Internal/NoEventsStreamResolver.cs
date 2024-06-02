@@ -1,7 +1,7 @@
 namespace Marty.Net.Internal;
 
-using Contracts;
 using System;
+using Contracts;
 
 #pragma warning disable 1591
 

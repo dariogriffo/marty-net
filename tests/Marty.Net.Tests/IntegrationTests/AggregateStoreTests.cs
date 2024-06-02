@@ -1,5 +1,9 @@
 ﻿namespace Marty.Net.Tests.IntegrationTests;
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Aggregates;
 using Contracts;
 using FluentAssertions;
@@ -7,10 +11,6 @@ using FluentAssertions.Specialized;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Net.Aggregates.Contracts;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Xunit;
 
 public class AggregateStoreTests

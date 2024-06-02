@@ -1,9 +1,9 @@
 namespace Marty.Net.Contracts.Internal;
 
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
 /// Inspired in https://github.com/jbogard/MediatR

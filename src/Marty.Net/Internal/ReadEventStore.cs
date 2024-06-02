@@ -1,15 +1,16 @@
+using System.Collections.ObjectModel;
+
 namespace Marty.Net.Internal;
 
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Contracts;
 using Contracts.Exceptions;
 using global::EventStore.Client;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 internal sealed class ReadEventStore : IReadEventStore
 {
@@ -34,7 +35,7 @@ internal sealed class ReadEventStore : IReadEventStore
         _connectionStrategy = connectionStrategy;
     }
 
-    public Task<List<IEvent>> ReadStream(
+    public Task<List<ReadEnvelope>> ReadStream(
         string streamName,
         CancellationToken cancellationToken = default
     )
@@ -44,7 +45,7 @@ internal sealed class ReadEventStore : IReadEventStore
         return ReadStreamFromPosition(streamName, streamPosition, cancellationToken);
     }
 
-    public Task<List<IEvent>> ReadStreamFromPosition(
+    public Task<List<ReadEnvelope>> ReadStreamFromPosition(
         string streamName,
         long position,
         CancellationToken cancellationToken = default
@@ -55,13 +56,13 @@ internal sealed class ReadEventStore : IReadEventStore
         return ReadStreamFromPosition(streamName, streamPosition, cancellationToken);
     }
 
-    public async Task<List<IEvent>> ReadStreamFromTimestamp(
+    public async Task<List<ReadEnvelope>> ReadStreamFromTimestamp(
         string streamName,
         DateTimeOffset timestamp,
         CancellationToken cancellationToken = default
     )
     {
-        List<IEvent> result = [];
+        List<ReadEnvelope> result = [];
         await _connectionStrategy.Execute(DoRead, cancellationToken);
         return result;
 
@@ -84,18 +85,32 @@ internal sealed class ReadEventStore : IReadEventStore
                         continue;
                     }
 
-                    IEvent? item = _serializer.Deserialize(@event.OriginalEvent);
-                    if (item is null)
+                    bool success = _serializer.Deserialize(
+                        @event.OriginalEvent,
+                        out IEvent? item,
+                        out IDictionary<string, string>? metadata
+                    );
+
+                    if (!success)
                     {
                         continue;
                     }
 
-                    if (item.Timestamp < timestamp)
+                    if (item!.Timestamp < timestamp)
                     {
                         continue;
                     }
 
-                    result.Add(item);
+                    if (metadata is null)
+                    {
+                        result.Add(new ReadEnvelope(item));
+                    }
+                    else
+                    {
+                        result.Add(
+                            new ReadEnvelope(item, new ReadOnlyDictionary<string, string>(metadata))
+                        );
+                    }
                 }
 
                 _logger.LogEventsCountRead(streamName, result.Count);
@@ -116,7 +131,7 @@ internal sealed class ReadEventStore : IReadEventStore
         }
     }
 
-    public async Task<List<IEvent>> ReadStreamUntilPosition(
+    public async Task<List<ReadEnvelope>> ReadStreamUntilPosition(
         string streamName,
         long position,
         CancellationToken cancellationToken = default
@@ -126,7 +141,7 @@ internal sealed class ReadEventStore : IReadEventStore
 
         _logger.LogReadEventsFromStreamUntilPosition(streamName, position);
 
-        List<IEvent> result = [];
+        List<ReadEnvelope> result = [];
         await _connectionStrategy.Execute(DoRead, cancellationToken);
         return result;
 
@@ -152,13 +167,30 @@ internal sealed class ReadEventStore : IReadEventStore
                         continue;
                     }
 
-                    IEvent? item = _serializer.Deserialize(@event.OriginalEvent);
-                    if (item is null)
+                    bool success = _serializer.Deserialize(
+                        @event.OriginalEvent,
+                        out IEvent? item,
+                        out IDictionary<string, string>? metadata
+                    );
+
+                    if (!success)
                     {
                         continue;
                     }
 
-                    result.Add(item);
+                    if (metadata is null)
+                    {
+                        result.Add(new ReadEnvelope(item!));
+                    }
+                    else
+                    {
+                        result.Add(
+                            new ReadEnvelope(
+                                item!,
+                                new ReadOnlyDictionary<string, string>(metadata)
+                            )
+                        );
+                    }
                     if (i == position)
                     {
                         break;
@@ -185,7 +217,7 @@ internal sealed class ReadEventStore : IReadEventStore
         }
     }
 
-    public async Task<List<IEvent>> ReadStreamUntilTimestamp(
+    public async Task<List<ReadEnvelope>> ReadStreamUntilTimestamp(
         string streamName,
         DateTimeOffset timestamp,
         CancellationToken cancellationToken = default
@@ -195,7 +227,7 @@ internal sealed class ReadEventStore : IReadEventStore
 
         _logger.LogReadEventsFromStreamUntilTimestamp(streamName, timestamp);
 
-        List<IEvent> result = [];
+        List<ReadEnvelope> result = [];
         await _connectionStrategy.Execute(DoRead, cancellationToken);
 
         return result;
@@ -219,18 +251,31 @@ internal sealed class ReadEventStore : IReadEventStore
                         continue;
                     }
 
-                    IEvent? item = _serializer.Deserialize(@event.OriginalEvent);
-                    if (item is null)
+                    bool success = _serializer.Deserialize(
+                        @event.OriginalEvent,
+                        out IEvent? item,
+                        out IDictionary<string, string>? metadata
+                    );
+                    if (!success)
                     {
                         continue;
                     }
 
-                    if (item.Timestamp > timestamp)
+                    if (item!.Timestamp > timestamp)
                     {
                         break;
                     }
 
-                    result.Add(item);
+                    if (metadata is null)
+                    {
+                        result.Add(new ReadEnvelope(item));
+                    }
+                    else
+                    {
+                        result.Add(
+                            new ReadEnvelope(item, new ReadOnlyDictionary<string, string>(metadata))
+                        );
+                    }
                 }
 
                 _logger.LogEventsCountRead(streamName, result.Count);
@@ -251,13 +296,13 @@ internal sealed class ReadEventStore : IReadEventStore
         }
     }
 
-    private async Task<List<IEvent>> ReadStreamFromPosition(
+    private async Task<List<ReadEnvelope>> ReadStreamFromPosition(
         string streamName,
         StreamPosition streamPosition,
         CancellationToken cancellationToken
     )
     {
-        List<IEvent> result = [];
+        List<ReadEnvelope> result = [];
         await _connectionStrategy.Execute(DoRead, cancellationToken);
         return result;
 
@@ -280,13 +325,24 @@ internal sealed class ReadEventStore : IReadEventStore
                         continue;
                     }
 
-                    IEvent? item = _serializer.Deserialize(@event.OriginalEvent);
-                    if (item is null)
+                    bool success = _serializer.Deserialize(
+                        @event.OriginalEvent,
+                        out IEvent? item,
+                        out IDictionary<string, string>? metadata
+                    );
+                    if (!success)
                     {
                         continue;
                     }
 
-                    result.Add(item);
+                    if (metadata is null)
+                    {
+                        result.Add(new(item!));
+                    }
+                    else
+                    {
+                        result.Add(new(item!, new ReadOnlyDictionary<string, string>(metadata)));
+                    }
                 }
 
                 _logger.LogEventsCountRead(streamName, result.Count);

@@ -7,7 +7,7 @@ volumes:
     
 services:
   eventstore-db:
-    image: eventstore/eventstore:23.6.0-buster-slim
+    image: eventstore/eventstore:24.2
     environment:
       - EVENTSTORE_INSECURE=true
       - EVENTSTORE_RUN_PROJECTIONS=All

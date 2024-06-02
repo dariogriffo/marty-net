@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
@@ -5,20 +6,18 @@ using Xunit.Sdk;
 
 namespace Marty.Net.Tests;
 
-using DotNet.Testcontainers.Builders;
-using DotNet.Testcontainers.Containers;
 using System;
 using System.Collections.Generic;
+using DotNet.Testcontainers.Builders;
+using DotNet.Testcontainers.Containers;
 
-public sealed class CustomTestFramework : XunitTestFramework, IDisposable
+public sealed class CustomTestFramework : XunitTestFramework, IAsyncDisposable
 {
     public CustomTestFramework(IMessageSink messageSink)
         : base(messageSink)
     {
         Container = new ContainerBuilder()
-            // Set the image for the container to "testcontainers/helloworld:1.1.0".
-            .WithImage("eventstore/eventstore:23.6.0-buster-slim")
-            // Bind port 8080 of the container to a random port on the host.
+            .WithImage("eventstore/eventstore:24.2")
             .WithPortBinding(1113, 1113)
             .WithPortBinding(2113, 2113)
             .WithEnvironment(
@@ -42,9 +41,11 @@ public sealed class CustomTestFramework : XunitTestFramework, IDisposable
 
     public IContainer Container { get; set; }
 
-    public new void Dispose()
+    private async ValueTask DisposeAsyncCore()
     {
-        Container.StopAsync().GetAwaiter().GetResult();
-        base.Dispose();
+        await Container.DisposeAsync();
+        GC.SuppressFinalize(this);
     }
+
+    public ValueTask DisposeAsync() => DisposeAsyncCore();
 }

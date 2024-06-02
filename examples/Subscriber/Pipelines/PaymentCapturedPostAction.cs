@@ -1,10 +1,10 @@
 ﻿namespace Subscriber.Pipelines;
 
-using Common.Events;
-using Marty.Net.Contracts;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Common.Events;
+using Marty.Net.Contracts;
 
 public class PaymentCapturedPostAction : IPostProcessor<PaymentRequested>
 {

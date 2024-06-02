@@ -1,15 +1,15 @@
 namespace Marty.Net;
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using Contracts;
 using Contracts.Internal;
 using Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 
 /// <summary>
 ///     The integration point with the <see cref="Microsoft.Extensions.DependencyInjection" /> framework

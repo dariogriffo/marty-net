@@ -1,9 +1,9 @@
 namespace Marty.Net.Internal;
 
-using Contracts;
-using global::EventStore.Client;
 using System;
 using System.Threading.Tasks;
+using Contracts;
+using global::EventStore.Client;
 
 internal sealed class ConnectionProvider : IConnectionProvider, IAsyncDisposable
 {

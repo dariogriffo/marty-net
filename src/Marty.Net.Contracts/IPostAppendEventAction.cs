@@ -1,22 +1,22 @@
 ﻿namespace Marty.Net.Contracts;
 
-using Internal;
 using System.Threading;
 using System.Threading.Tasks;
+using Internal;
 
 /// <summary>
 ///     Action to be executed after publishing an <see cref="IEvent"/>
 /// </summary>
 /// <typeparam name="T"></typeparam>
 [AfterPublishEvent]
-public interface IPostAppendEventAction<in T>
+public interface IPostAppendEventAction<T>
     where T : IEvent
 {
     /// <summary>
     /// Action to be executed before publishing an <see cref="IEvent"/>
     /// </summary>
-    /// <param name="event"></param>
-    /// <param name="cancellationToken"></param>
+    /// <param name="envelope">The event envelope</param>
+    /// <param name="cancellationToken">The <see cref="CancellationToken"/></param>
     /// <returns></returns>
-    Task Execute(T @event, CancellationToken cancellationToken = default);
+    Task Execute(WriteEnvelope<T> envelope, CancellationToken cancellationToken = default);
 }

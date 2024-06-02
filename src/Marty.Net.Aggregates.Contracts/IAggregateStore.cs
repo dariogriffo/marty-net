@@ -1,9 +1,9 @@
 ﻿namespace Marty.Net.Aggregates.Contracts;
 
-using Net.Contracts.Exceptions;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Net.Contracts.Exceptions;
 
 /// <summary>
 ///     The interface that gives access to https://github.com/EventStore/EventStore

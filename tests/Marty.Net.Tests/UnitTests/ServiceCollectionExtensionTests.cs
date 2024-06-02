@@ -1,14 +1,14 @@
 ﻿namespace Marty.Net.Tests.UnitTests;
 
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Contracts;
 using Events.Orders;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Xunit;
 
 public class ServiceCollectionExtensionTests
@@ -41,7 +41,7 @@ public class ServiceCollectionExtensionTests
         await eventStore.Save(streamName, e1, cancellationToken);
         await eventStore.Append(streamName, e2, cancellationToken);
         await eventStore.Append(streamName, e3, cancellationToken);
-        List<IEvent> events = await readEventStore.ReadStream(streamName, cancellationToken);
+        List<ReadEnvelope> events = await readEventStore.ReadStream(streamName, cancellationToken);
         events.Count.Should().Be(3);
     }
 }

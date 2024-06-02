@@ -1,11 +1,11 @@
 ﻿namespace Subscriber;
 
+using System;
+using System.Collections.Generic;
 using Marty.Net.Contracts;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
 
 internal static class EventStoreConfigurationExtensions
 {

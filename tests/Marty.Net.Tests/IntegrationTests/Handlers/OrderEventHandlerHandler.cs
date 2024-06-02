@@ -1,10 +1,10 @@
 ﻿namespace Marty.Net.Tests.IntegrationTests.Handlers;
 
+using System.Threading;
+using System.Threading.Tasks;
 using Contracts;
 using Events.Orders;
 using Events.Orders.v2;
-using System.Threading;
-using System.Threading.Tasks;
 using OrderRefundRequested = Events.Orders.v2.OrderRefundRequested;
 
 public class OrderEventHandlerHandler

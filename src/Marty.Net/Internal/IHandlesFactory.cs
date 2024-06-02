@@ -1,8 +1,8 @@
 namespace Marty.Net.Internal;
 
-using Contracts;
 using System;
 using System.Collections.Generic;
+using Contracts;
 using Wrappers;
 
 internal record ExecutionPlan

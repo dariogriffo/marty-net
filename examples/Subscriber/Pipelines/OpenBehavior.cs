@@ -1,10 +1,10 @@
 namespace Subscriber.Pipelines;
 
-using Marty.Net.Contracts;
 using System;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Marty.Net.Contracts;
 
 public class OpenBehavior<T> : IPipelineBehavior<T>
     where T : IEvent

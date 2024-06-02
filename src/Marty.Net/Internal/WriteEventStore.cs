@@ -1,15 +1,15 @@
 namespace Marty.Net.Internal;
 
-using Contracts;
-using Contracts.Exceptions;
-using global::EventStore.Client;
-using Grpc.Core;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Contracts;
+using Contracts.Exceptions;
+using global::EventStore.Client;
+using Grpc.Core;
+using Microsoft.Extensions.Logging;
 using Wrappers;
 
 internal sealed class WriteEventStore : IWriteEventStore
@@ -47,48 +47,64 @@ internal sealed class WriteEventStore : IWriteEventStore
         T @event,
         CancellationToken cancellationToken = default
     )
+        where T : IEvent => Save(streamName, new WriteEnvelope<T>(@event), cancellationToken);
+
+    public Task<long> Save<T>(
+        string streamName,
+        WriteEnvelope<T> envelope,
+        CancellationToken cancellationToken = default
+    )
         where T : IEvent
     {
-        _logger.LogAppendingEventToStream(@event, streamName);
+        _logger.LogAppendingEventToStream(envelope, streamName);
 
         StreamState expectedState = StreamState.NoStream;
-        return SaveEvent(streamName, @event, expectedState, null, cancellationToken);
+        return SaveEvent(streamName, envelope, expectedState, null, cancellationToken);
     }
+
+    public Task<long> Save<T>(
+        string streamName,
+        T[] events,
+        CancellationToken cancellationToken = default
+    )
+        where T : IEvent =>
+        Save(streamName, events.Select(e => new WriteEnvelope<T>(e)).ToArray(), cancellationToken);
 
     public async Task<long> Save<T>(
         string streamName,
-        T[] events,
+        WriteEnvelope<T>[] envelopes,
         CancellationToken cancellationToken = default
     )
         where T : IEvent
     {
         bool hasBefore = _handlesFactory.TryGetPreAppendEventActionFor(
-            events.First(),
+            envelopes.First().Event,
             _serviceProvider,
             out List<PreAppendEventActionWrapper>? beforeActions
         );
 
         bool hasAfter = _handlesFactory.TryGetPostAppendEventActionsFor(
-            events.First(),
+            envelopes.First().Event,
             _serviceProvider,
             out List<PostAppendEventActionWrapper>? afterActions
         );
 
-        EventData[] data = new EventData[events.Length];
-        for (int index = 0; index < events.Length; index++)
+        EventData[] data = new EventData[envelopes.Length];
+        for (int index = 0; index < envelopes.Length; index++)
         {
-            T @event = events[index];
+            WriteEnvelope<T> envelope = envelopes[index];
+            T @event = envelope.Event;
             if (hasBefore)
             {
                 foreach (PreAppendEventActionWrapper action in beforeActions!)
                 {
-                    await action.Execute(@event, cancellationToken);
+                    await action.Execute(envelope, cancellationToken);
                 }
             }
 
             _logger.LogAppendingEventToStream(@event, streamName);
 
-            data[index] = _serializer.Serialize(@event);
+            data[index] = _serializer.Serialize(envelope);
         }
 
         StreamState expectedState = StreamState.NoStream;
@@ -100,18 +116,18 @@ internal sealed class WriteEventStore : IWriteEventStore
             cancellationToken
         );
 
-        foreach (T @event in events)
+        foreach (WriteEnvelope<T> envelope in envelopes)
         {
             if (hasAfter)
             {
                 foreach (PostAppendEventActionWrapper action in afterActions!)
                 {
-                    Task task = action.Execute(@event, cancellationToken);
+                    Task task = action.Execute(envelope, cancellationToken);
                     await task;
                 }
             }
 
-            _logger.LogEventAdded(@event);
+            _logger.LogEventAdded(envelope.Event);
         }
 
         return result;
@@ -122,44 +138,64 @@ internal sealed class WriteEventStore : IWriteEventStore
         T @event,
         CancellationToken cancellationToken = default
     )
+        where T : IEvent => Append(streamName, new WriteEnvelope<T>(@event), cancellationToken);
+
+    public Task<long> Append<T>(
+        string streamName,
+        WriteEnvelope<T> envelop,
+        CancellationToken cancellationToken = default
+    )
         where T : IEvent
     {
-        _logger.LogAppendingEventToStream(@event, streamName);
+        _logger.LogAppendingEventToStream(envelop, streamName);
 
         StreamState expectedState = StreamState.StreamExists;
-        return SaveEvent(streamName, @event, expectedState, null, cancellationToken);
+        return SaveEvent(streamName, envelop, expectedState, null, cancellationToken);
     }
+
+    public Task<long> Append<T>(
+        string streamName,
+        T[] events,
+        CancellationToken cancellationToken = default
+    )
+        where T : IEvent =>
+        Append(
+            streamName,
+            events.Select(e => new WriteEnvelope<T>(e)).ToArray(),
+            cancellationToken
+        );
 
     public async Task<long> Append<T>(
         string streamName,
-        T[] events,
+        WriteEnvelope<T>[] envelopes,
         CancellationToken cancellationToken = default
     )
         where T : IEvent
     {
         bool hasBefore = _handlesFactory.TryGetPreAppendEventActionFor(
-            events.First(),
+            envelopes.First().Event,
             _serviceProvider,
             out List<PreAppendEventActionWrapper>? beforeActions
         );
 
-        _logger.LogAppendingEventsCountToStream(events, streamName);
+        _logger.LogAppendingEventsCountToStream(envelopes, streamName);
 
-        EventData[] data = new EventData[events.Length];
-        for (int index = 0; index < events.Length; index++)
+        EventData[] data = new EventData[envelopes.Length];
+        for (int index = 0; index < envelopes.Length; index++)
         {
-            T @event = events[index];
+            WriteEnvelope<T> envelope = envelopes[index];
+            T @event = envelope.Event;
             if (hasBefore)
             {
                 foreach (PreAppendEventActionWrapper action in beforeActions!)
                 {
-                    await action.Execute(@event, cancellationToken);
+                    await action.Execute(envelope, cancellationToken);
                 }
             }
 
             _logger.LogAppendingEventToStream(@event, streamName);
 
-            data[index] = _serializer.Serialize(@event);
+            data[index] = _serializer.Serialize(envelope);
         }
 
         StreamState expectedState = StreamState.StreamExists;
@@ -172,13 +208,14 @@ internal sealed class WriteEventStore : IWriteEventStore
         );
 
         bool hasAfter = _handlesFactory.TryGetPostAppendEventActionsFor(
-            events.First(),
+            envelopes.First().Event,
             _serviceProvider,
             out List<PostAppendEventActionWrapper>? afterActions
         );
 
-        foreach (T @event in events)
+        foreach (WriteEnvelope<T> envelope in envelopes)
         {
+            IEvent @event = envelope.Event;
             _logger.LogEventAdded(@event);
             if (!hasAfter)
             {
@@ -187,7 +224,7 @@ internal sealed class WriteEventStore : IWriteEventStore
 
             foreach (PostAppendEventActionWrapper action in afterActions!)
             {
-                await action.Execute(@event, cancellationToken);
+                await action.Execute(envelope, cancellationToken);
             }
         }
 
@@ -195,12 +232,18 @@ internal sealed class WriteEventStore : IWriteEventStore
     }
 
     public Task<long> Append<T>(T @event, CancellationToken cancellationToken = default)
+        where T : IEvent => Append(new WriteEnvelope<T>(@event), cancellationToken);
+
+    public Task<long> Append<T>(
+        WriteEnvelope<T> envelope,
+        CancellationToken cancellationToken = default
+    )
         where T : IEvent
     {
-        string streamName = _eventsStreamResolver.StreamForEvent(@event);
-        _logger.LogAppendingEventToStream(@event, streamName);
+        string streamName = _eventsStreamResolver.StreamForEvent(envelope.Event);
+        _logger.LogAppendingEventToStream(envelope, streamName);
         StreamState expectedState = StreamState.StreamExists;
-        return SaveEvent(streamName, @event, expectedState, null, cancellationToken);
+        return SaveEvent(streamName, envelope, expectedState, null, cancellationToken);
     }
 
     public Task<long> Append<T>(
@@ -209,49 +252,73 @@ internal sealed class WriteEventStore : IWriteEventStore
         long expectedStreamVersion,
         CancellationToken cancellationToken = default
     )
+        where T : IEvent =>
+        Append(streamName, new WriteEnvelope<T>(@event), expectedStreamVersion, cancellationToken);
+
+    public Task<long> Append<T>(
+        string streamName,
+        WriteEnvelope<T> envelope,
+        long expectedStreamVersion,
+        CancellationToken cancellationToken = default
+    )
         where T : IEvent
     {
-        _logger.LogAppendingEventToStream(@event, streamName);
+        _logger.LogAppendingEventToStream(envelope, streamName);
 
         StreamState expectedState = StreamState.StreamExists;
         return SaveEvent(
             streamName,
-            @event,
+            envelope,
             expectedState,
             expectedStreamVersion,
             cancellationToken
         );
     }
 
-    public async Task<long> Append<T>(
+    public Task<long> Append<T>(
         string streamName,
         T[] events,
         long expectedStreamVersion,
         CancellationToken cancellationToken = default
     )
+        where T : IEvent =>
+        Append(
+            streamName,
+            events.Select(e => new WriteEnvelope<T>(e)).ToArray(),
+            expectedStreamVersion,
+            cancellationToken
+        );
+
+    public async Task<long> Append<T>(
+        string streamName,
+        WriteEnvelope<T>[] envelopes,
+        long expectedStreamVersion,
+        CancellationToken cancellationToken = default
+    )
         where T : IEvent
     {
-        _logger.LogAppendingEventsCountToStream(events, streamName);
+        _logger.LogAppendingEventsCountToStream(envelopes, streamName);
 
         bool hasBefore = _handlesFactory.TryGetPreAppendEventActionFor(
-            events.First(),
+            envelopes.First().Event,
             _serviceProvider,
             out List<PreAppendEventActionWrapper>? beforeActions
         );
 
-        EventData[] data = new EventData[events.Length];
-        for (int index = 0; index < events.Length; index++)
+        EventData[] data = new EventData[envelopes.Length];
+        for (int index = 0; index < envelopes.Length; index++)
         {
-            T @event = events[index];
+            WriteEnvelope<T> envelope = envelopes[index];
+            T @event = envelope.Event;
             if (hasBefore)
             {
                 foreach (PreAppendEventActionWrapper action in beforeActions!)
                 {
-                    await action.Execute(@event, cancellationToken);
+                    await action.Execute(envelope, cancellationToken);
                 }
             }
 
-            data[index] = _serializer.Serialize(@event);
+            data[index] = _serializer.Serialize(envelope);
         }
 
         StreamState expectedState = StreamState.StreamExists;
@@ -264,20 +331,21 @@ internal sealed class WriteEventStore : IWriteEventStore
         );
 
         bool hasAfter = _handlesFactory.TryGetPostAppendEventActionsFor(
-            events.First(),
+            envelopes.First().Event,
             _serviceProvider,
             out List<PostAppendEventActionWrapper>? afterActions
         );
 
-        for (int index = 0; index < events.Length; index++)
+        for (int index = 0; index < envelopes.Length; index++)
         {
-            T @event = events[index];
+            WriteEnvelope<T> envelope = envelopes[index];
+            T @event = envelope.Event;
             _logger.LogEventAdded(@event);
             if (hasAfter)
             {
                 foreach (PostAppendEventActionWrapper action in afterActions!)
                 {
-                    await action.Execute(@event, cancellationToken);
+                    await action.Execute(envelope, cancellationToken);
                 }
             }
         }
@@ -290,20 +358,30 @@ internal sealed class WriteEventStore : IWriteEventStore
         long expectedStreamVersion,
         CancellationToken cancellationToken = default
     )
+        where T : IEvent =>
+        Append(new WriteEnvelope<T>(@event), expectedStreamVersion, cancellationToken);
+
+    public Task<long> Append<T>(
+        WriteEnvelope<T> envelope,
+        long expectedStreamVersion,
+        CancellationToken cancellationToken = default
+    )
         where T : IEvent
     {
-        string streamName = _eventsStreamResolver.StreamForEvent(@event);
-        return Append(streamName, @event, expectedStreamVersion, cancellationToken);
+        string streamName = _eventsStreamResolver.StreamForEvent(envelope.Event);
+        return Append(streamName, envelope, expectedStreamVersion, cancellationToken);
     }
 
-    private async Task<long> SaveEvent(
+    private async Task<long> SaveEvent<T>(
         string streamName,
-        IEvent @event,
+        WriteEnvelope<T> envelope,
         StreamState expectedState,
         long? expectedStreamVersion,
         CancellationToken cancellationToken
     )
+        where T : IEvent
     {
+        IEvent @event = envelope.Event;
         bool hasBefore = _handlesFactory.TryGetPreAppendEventActionFor(
             @event,
             _serviceProvider,
@@ -318,11 +396,11 @@ internal sealed class WriteEventStore : IWriteEventStore
         {
             foreach (PreAppendEventActionWrapper action in beforeActions!)
             {
-                await action.Execute(@event, cancellationToken);
+                await action.Execute(envelope, cancellationToken);
             }
         }
 
-        EventData[] data = [_serializer.Serialize(@event)];
+        EventData[] data = [_serializer.Serialize(envelope)];
         long result = await SaveEventsWithRetryStrategy(
             streamName,
             data,
@@ -331,13 +409,13 @@ internal sealed class WriteEventStore : IWriteEventStore
             cancellationToken
         );
 
-        _logger.LogEventAppended(@event);
+        _logger.LogEventAppended(envelope);
 
         if (hasAfter)
         {
             foreach (PostAppendEventActionWrapper action in afterActions!)
             {
-                await action.Execute(@event, cancellationToken);
+                await action.Execute(envelope, cancellationToken);
             }
         }
 

@@ -1,11 +1,11 @@
 ﻿namespace Subscriber.Pipelines;
 
-using Common.Events;
-using Marty.Net.Contracts;
 using System;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Common.Events;
+using Marty.Net.Contracts;
 
 public class PaymentRequestedPipeline1 : IPipelineBehavior<PaymentRequested>
 {

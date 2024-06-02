@@ -1,11 +1,11 @@
-﻿using Common.Aggregates;
+﻿using System;
+using Common.Aggregates;
 using Marty.Net;
 using Marty.Net.Aggregates.Contracts;
 using Marty.Net.Contracts;
 using Microsoft.Extensions.DependencyInjection;
 using Subscriber;
 using Subscriber.Pipelines;
-using System;
 
 ServiceCollection services = new();
 services

@@ -1,12 +1,12 @@
 namespace Marty.Net.Aggregates.Contracts;
 
-using Net.Contracts;
-using ReflectionMagic;
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Net.Contracts;
+using ReflectionMagic;
 
 /// <summary>
 ///     A base Aggregate NOT thread safe
@@ -52,11 +52,11 @@ public abstract class Aggregate
     ///     Loads an Aggregate Root to its last know state from the history
     /// </summary>
     /// <param name="history">The history of events.</param>
-    public void LoadFromHistory(IEnumerable<IEvent> history)
+    public void LoadFromHistory(IEnumerable<ReadEnvelope> history)
     {
-        foreach (IEvent e in history)
+        foreach (ReadEnvelope e in history)
         {
-            ApplyChange(e, false);
+            ApplyChange(e.Event, false);
         }
     }
 

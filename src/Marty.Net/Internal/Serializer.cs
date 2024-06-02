@@ -1,9 +1,5 @@
 namespace Marty.Net.Internal;
 
-using Contracts;
-using Contracts.Exceptions;
-using global::EventStore.Client;
-using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
@@ -11,6 +7,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json;
+using Contracts;
+using Contracts.Exceptions;
+using global::EventStore.Client;
+using Microsoft.Extensions.Options;
 
 internal sealed class Serializer : ISerializer
 {
@@ -26,42 +26,48 @@ internal sealed class Serializer : ISerializer
             .Version;
     }
 
-    public IEvent? Deserialize(EventRecord record)
+    public bool Deserialize(
+        EventRecord record,
+        out IEvent? @event,
+        out IDictionary<string, string>? metadata
+    )
     {
-        Dictionary<string, string>? metadata;
+        @event = null;
+        metadata = null;
+        Dictionary<string, string>? eventMetadata;
         try
         {
-            metadata = JsonSerializer.Deserialize<Dictionary<string, string>>(
+            metadata = eventMetadata = JsonSerializer.Deserialize<Dictionary<string, string>>(
                 record.Metadata.Span,
                 _options
             );
         }
         catch (Exception)
         {
-            return null;
+            return false;
         }
 
         if (metadata is null)
         {
-            return null;
+            return false;
         }
 
         if (!metadata.ContainsKey(MetadataHeaders.MartyVersion))
         {
-            return null;
+            return false;
         }
 
         ReadOnlyMemory<byte> eventData = record.Data;
 
         Type type = _cachedTypes.GetOrAdd(
-            metadata[MetadataHeaders.AssemblyQualifiedName],
+            eventMetadata![MetadataHeaders.AssemblyQualifiedName],
             _ =>
             {
-                Type? type1 = Type.GetType(metadata[MetadataHeaders.AssemblyQualifiedName]);
+                Type? type1 = Type.GetType(eventMetadata[MetadataHeaders.AssemblyQualifiedName]);
                 if (type1 is null)
                 {
-                    string eventFullName = metadata[MetadataHeaders.EventFullName];
-                    string eventAssembly = metadata[MetadataHeaders.AssemblyName];
+                    string eventFullName = eventMetadata[MetadataHeaders.EventFullName];
+                    string eventAssembly = eventMetadata[MetadataHeaders.AssemblyName];
                     try
                     {
                         Assembly assembly = Assembly.Load(eventAssembly);
@@ -82,35 +88,36 @@ internal sealed class Serializer : ISerializer
             }
         );
 
-        IEvent? @event = JsonSerializer.Deserialize(eventData.Span, type, _options) as IEvent;
+        @event = JsonSerializer.Deserialize(eventData.Span, type, _options) as IEvent;
         int nonMartyKeys = metadata.Count(x => !x.Key.StartsWith(MetadataHeaders.MartyPrefix));
 
         if (nonMartyKeys == 0)
         {
             if (metadata.ContainsKey(MetadataHeaders.EmptyMetadata))
             {
-                @event!.Metadata = new Dictionary<string, string>().ToFrozenDictionary();
+                metadata = new Dictionary<string, string>();
             }
 
-            return @event!;
+            return true;
         }
 
         {
             FrozenDictionary<string, string> dictionary = metadata
                 .Where(x => !x.Key.StartsWith(MetadataHeaders.MartyPrefix))
                 .ToFrozenDictionary(x => x.Key, x => x.Value);
-            @event!.Metadata = new Dictionary<string, string>(dictionary).ToFrozenDictionary();
+            metadata = new Dictionary<string, string>(dictionary);
         }
 
-        return @event;
+        return true;
     }
 
-    public EventData Serialize<T>(T @event)
+    public EventData Serialize<T>(WriteEnvelope<T> envelope)
         where T : IEvent
     {
+        IEvent @event = envelope.Event;
         Type eventType = @event.GetType();
 
-        IReadOnlyDictionary<string, string>? eventMetadata = @event.Metadata;
+        IDictionary<string, string>? eventMetadata = envelope.Metadata;
 
         Dictionary<string, string> metadata =
             new(eventMetadata?.Count + 5 ?? 5)
@@ -130,8 +137,6 @@ internal sealed class Serializer : ISerializer
             {
                 metadata.Add(key, value);
             }
-
-            @event.Metadata = null;
         }
 
         if (emptyMetadata)
@@ -143,12 +148,7 @@ internal sealed class Serializer : ISerializer
             .Serialize(@event, @event.GetType(), _options)
             .ToUtf8Bytes();
         byte[] metadataBytes = JsonSerializer.Serialize(metadata, _options).ToUtf8Bytes();
-        return new EventData(
-            Uuid.FromGuid(Guid.NewGuid()),
-            eventType.Name,
-            eventBytes,
-            metadataBytes
-        );
+        return new EventData(Uuid.FromGuid(@event.Id), eventType.Name, eventBytes, metadataBytes);
     }
 
     private static class MetadataHeaders

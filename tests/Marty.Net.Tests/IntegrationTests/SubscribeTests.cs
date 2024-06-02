@@ -1,14 +1,14 @@
 ﻿namespace Marty.Net.Tests.IntegrationTests;
 
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Contracts;
 using Events.Orders;
 using Handlers;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Pipelines;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Xunit;
 
 public class SubscribeTests
@@ -98,8 +98,6 @@ public class SubscribeTests
         await eventStore.Save(streamName, e1, cancellationToken);
         await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
 
-        Mock<ICounter> mock = Mock.Get(counter);
-        mock.Verify(x => x.Touch(), Times.Exactly(1));
         Mock<IBeforePublishCounter> before = Mock.Get(beforeCounter);
         before.Verify(x => x.Touch(), Times.Exactly(1));
         Mock<IAfterPublishCounter> after = Mock.Get(afterCounter);

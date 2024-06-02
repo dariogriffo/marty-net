@@ -1,9 +1,9 @@
 namespace Marty.Net.Internal.Wrappers;
 
-using Contracts;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Contracts;
 
 internal abstract class PipelineBehaviorWrapper
 {
@@ -12,8 +12,7 @@ internal abstract class PipelineBehaviorWrapper
         IConsumerContext,
         CancellationToken,
         Task<OperationResult>
-    > Next
-    { get; set; } = null!;
+    > Next { get; set; } = null!;
 
     internal abstract Task<OperationResult> Execute(
         object @event,
@@ -38,7 +37,8 @@ internal class PipelineBehaviorWrapper<T> : PipelineBehaviorWrapper
         CancellationToken cancellationToken = default
     )
     {
-        var next = Next as Func<T, IConsumerContext, CancellationToken, Task<OperationResult>>;
+        Func<T, IConsumerContext, CancellationToken, Task<OperationResult>>? next =
+            Next as Func<T, IConsumerContext, CancellationToken, Task<OperationResult>>;
         return _behavior.Execute((T)@event, context, next!, cancellationToken);
     }
 }

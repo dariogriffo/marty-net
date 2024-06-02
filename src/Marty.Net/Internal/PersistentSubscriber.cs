@@ -1,13 +1,16 @@
+using System.Collections.ObjectModel;
+
 namespace Marty.Net.Internal;
 
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Contracts;
 using Contracts.Exceptions;
 using global::EventStore.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 internal class PersistentSubscriber : IPersistentSubscriber
 {
@@ -79,11 +82,15 @@ internal class PersistentSubscriber : IPersistentSubscriber
             await subscription.Ack(resolvedEvent);
         }
 
-        ExecutionPlan? plan;
         try
         {
-            IEvent? @event = _serializer.Deserialize(resolvedEvent.Event);
-            if (@event is null)
+            bool success = _serializer.Deserialize(
+                resolvedEvent.Event,
+                out IEvent? @event,
+                out IDictionary<string, string>? metadata
+            );
+
+            if (!success)
             {
                 if (_configuration.Value.TreatNonMartyEventsErrors)
                 {
@@ -97,18 +104,18 @@ internal class PersistentSubscriber : IPersistentSubscriber
                 return;
             }
 
-            _logger.LogEventArrived(@event);
+            _logger.LogEventArrived(@event!);
 
-            plan = _handlesFactory.TryGetExecutionPlanFor(@event);
+            ExecutionPlan? plan = _handlesFactory.TryGetExecutionPlanFor(@event!);
             if (plan is null)
             {
                 if (_configuration.Value.TreatMissingHandlersAsErrors)
                 {
-                    await ParkEventAndLogWarning(@event, subscription, resolvedEvent);
+                    await ParkEventAndLogWarning(@event!, subscription, resolvedEvent);
                 }
                 else
                 {
-                    _logger.LogEventAckWithoutHandler(@event);
+                    _logger.LogEventAckWithoutHandler(@event!);
 
                     await subscription.Ack(resolvedEvent);
                 }
@@ -116,16 +123,28 @@ internal class PersistentSubscriber : IPersistentSubscriber
                 return;
             }
 
-            ConsumerContext context = new(resolvedEvent.Event.EventStreamId, retryCount);
+            ConsumerContext context;
+            if (metadata is null)
+            {
+                context = new(resolvedEvent.Event.EventStreamId, null, retryCount);
+            }
+            else
+            {
+                context = new(
+                    resolvedEvent.Event.EventStreamId,
+                    new ReadOnlyDictionary<string, string>(metadata),
+                    retryCount
+                );
+            }
 
             for (int i = plan.Behaviors.Length - 2; i >= 0; i--)
             {
-                var index = i;
+                int index = i;
                 plan.Behaviors[i].Next = plan.Behaviors[index + 1].Execute;
             }
 
             OperationResult result = await plan.Behaviors[0]
-                .Execute(@event, context, cancellationToken);
+                .Execute(@event!, context, cancellationToken);
 
             _logger.LogEventHandled(@event, result);
 

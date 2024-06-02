@@ -1,8 +1,8 @@
 ﻿namespace Common.Events;
 
-using Marty.Net.Contracts;
 using System;
 using System.Collections.Frozen;
+using Marty.Net.Contracts;
 
 public class PaymentRequested : IEvent
 {
@@ -10,7 +10,7 @@ public class PaymentRequested : IEvent
     public string Cvv { get; init; } = null!;
     public int Amount { get; init; }
 
-    public string Id { get; init; } = null!;
+    public Guid Id { get; } = Guid.NewGuid();
 
     public DateTimeOffset Timestamp { get; init; }
 

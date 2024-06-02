@@ -1,11 +1,10 @@
 ﻿namespace Marty.Net.Tests.IntegrationTests.Pipelines;
 
-using Contracts;
-using Events.Orders;
-using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Contracts;
+using Events.Orders;
 
 public class PreAppendTouch : IPreAppendEventAction<OrderAbandoned>
 {
@@ -16,20 +15,22 @@ public class PreAppendTouch : IPreAppendEventAction<OrderAbandoned>
         _counter = counter;
     }
 
-    public Task Execute(OrderAbandoned @event, CancellationToken cancellationToken = default)
+    public Task Execute(
+        WriteEnvelope<OrderAbandoned> envelope,
+        CancellationToken cancellationToken = default
+    )
     {
         _counter.Touch();
         IDictionary<string, string> metadata = new Dictionary<string, string>();
-        if (@event.Metadata is not null)
+        if (envelope.Metadata is not null)
         {
-            foreach ((string key, string value) in @event.Metadata)
+            foreach ((string key, string value) in envelope.Metadata)
             {
                 metadata.Add(key, value);
             }
         }
 
         metadata.Add("test", "test");
-        @event.Metadata = metadata.ToFrozenDictionary();
 
         return Task.CompletedTask;
     }

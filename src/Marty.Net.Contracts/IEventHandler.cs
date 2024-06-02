@@ -1,8 +1,8 @@
 namespace Marty.Net.Contracts;
 
-using Internal;
 using System.Threading;
 using System.Threading.Tasks;
+using Internal;
 
 /// <summary>
 ///     An interface to implement to handle <see cref="IEvent" />s.

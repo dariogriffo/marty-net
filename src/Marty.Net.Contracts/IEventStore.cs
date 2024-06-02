@@ -1,10 +1,10 @@
 namespace Marty.Net.Contracts;
 
-using Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Exceptions;
 
 /// <summary>
 ///     The interface that gives access to https://github.com/EventStore/EventStore
@@ -146,7 +146,7 @@ public interface IEventStore
     /// <param name="position">The position to start reading from >=0.</param>
     /// <param name="cancellationToken">The optional <see cref="System.Threading.CancellationToken" />.</param>
     /// <returns>A list of tuples containing the events with their associated (optional) metadata.</returns>
-    Task<List<IEvent>> ReadStreamFromPosition(
+    Task<List<ReadEnvelope>> ReadStreamFromPosition(
         string streamName,
         long position,
         CancellationToken cancellationToken = default
@@ -159,7 +159,7 @@ public interface IEventStore
     /// <param name="position">The position to read until.</param>
     /// <param name="cancellationToken">The optional <see cref="System.Threading.CancellationToken" />.</param>
     /// <returns>A list of tuples containing the events with their associated (optional) metadata.</returns>
-    Task<List<IEvent>> ReadStreamUntilPosition(
+    Task<List<ReadEnvelope>> ReadStreamUntilPosition(
         string streamName,
         long position,
         CancellationToken cancellationToken = default
@@ -172,7 +172,7 @@ public interface IEventStore
     /// <param name="timestamp">The timestamp read until.</param>
     /// <param name="cancellationToken">The optional <see cref="System.Threading.CancellationToken" />.</param>
     /// <returns>A list of tuples containing the events with their associated (optional) metadata.</returns>
-    Task<List<IEvent>> ReadStreamUntilTimestamp(
+    Task<List<ReadEnvelope>> ReadStreamUntilTimestamp(
         string streamName,
         DateTimeOffset timestamp,
         CancellationToken cancellationToken = default
@@ -185,7 +185,7 @@ public interface IEventStore
     /// <param name="timestamp">The timestamp read until.</param>
     /// <param name="cancellationToken">The optional <see cref="System.Threading.CancellationToken" />.</param>
     /// <returns>A list of tuples containing the events with their associated (optional) metadata.</returns>
-    Task<List<IEvent>> ReadStreamFromTimestamp(
+    Task<List<ReadEnvelope>> ReadStreamFromTimestamp(
         string streamName,
         DateTimeOffset timestamp,
         CancellationToken cancellationToken
@@ -197,7 +197,10 @@ public interface IEventStore
     /// <param name="streamName">The stream name.</param>
     /// <param name="cancellationToken">The optional <see cref="System.Threading.CancellationToken" />.</param>
     /// <returns>A list of tuples containing the events with their associated (optional) metadata.</returns>
-    Task<List<IEvent>> ReadStream(string streamName, CancellationToken cancellationToken = default);
+    Task<List<ReadEnvelope>> ReadStream(
+        string streamName,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     ///     Subscribes asynchronously to a stream from the end.

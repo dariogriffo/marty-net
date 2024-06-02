@@ -1,8 +1,8 @@
 ﻿namespace Marty.Net.Tests.Events.Orders;
 
-using Contracts;
 using System;
 using System.Collections.Frozen;
+using Contracts;
 
 public class OrderDelivered : IEvent
 {

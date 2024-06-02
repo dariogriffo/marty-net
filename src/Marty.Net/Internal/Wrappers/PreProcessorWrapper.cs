@@ -1,8 +1,8 @@
 namespace Marty.Net.Internal.Wrappers;
 
-using Contracts;
 using System.Threading;
 using System.Threading.Tasks;
+using Contracts;
 
 internal abstract class PreProcessorWrapper
 {

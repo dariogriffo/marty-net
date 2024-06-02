@@ -31,6 +31,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "solution-items", "solution-
 		CHANGELOG.md = CHANGELOG.md
 		LICENSE = LICENSE
 		docker-compose.yml = docker-compose.yml
+		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
 Global
